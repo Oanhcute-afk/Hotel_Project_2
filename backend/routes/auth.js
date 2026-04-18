@@ -57,7 +57,8 @@ router.post('/register', async (req, res) => {
         username: user.username,
         avatar: user.avatar,
         phone: user.phone,
-        role: user.role
+        role: user.role,
+        favorites: user.favorites || []
       }
     });
   } catch (error) {
@@ -102,7 +103,8 @@ router.post('/login', async (req, res) => {
           username: adminUser.username,
           avatar: adminUser.avatar,
           phone: adminUser.phone,
-          role: adminUser.role
+          role: adminUser.role,
+          favorites: adminUser.favorites || []
         }
       });
     }
@@ -130,7 +132,8 @@ router.post('/login', async (req, res) => {
         username: user.username,
         avatar: user.avatar,
         phone: user.phone,
-        role: user.role
+        role: user.role,
+        favorites: user.favorites || []
       }
     });
 
@@ -176,13 +179,14 @@ router.post('/google', async (req, res) => {
         username: user.username,
         avatar: user.avatar,
         phone: user.phone,
-        role: user.role
+        role: user.role,
+        favorites: user.favorites || []
       }
     });
 
   } catch (error) {
     console.error('Google login error:', error);
-    res.status(500).json({ message: 'Lỗi server khi đăng nhập bằng Google' });
+    res.status(500).json({ message: 'Lỗi server khi đăng nhập bằng Google', err: error.message });
   }
 });
 

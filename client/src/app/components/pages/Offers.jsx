@@ -9,7 +9,8 @@ export function Offers() {
   useEffect(() => {
     const fetchOffers = async () => {
       try {
-        const res = await fetch('http://localhost:5000/api/vouchers');
+        const res = await fetch('/api/vouchers');
+        if (!res.ok) throw new Error('Network response was not ok');
         const data = await res.json();
         
         const formattedOffers = data.map(v => ({

@@ -190,22 +190,7 @@ export function Checkout() {
   const finalTotal =
     subTotal - discountApplied + taxAmount;
 
-  if (isLoading)
-    return (
-      <div className="min-h-[50vh] flex items-center justify-center">
-        Đang tải...
-      </div>
-    );
 
-  if (!hotel) {
-    return (
-      <div className="min-h-[50vh] flex items-center justify-center">
-        <p className="text-xl text-slate-500">
-          Dữ liệu đặt phòng không hợp lệ.
-        </p>
-      </div>
-    );
-  }
 
   const handleConfirm = async e => {
     e.preventDefault();
@@ -258,8 +243,7 @@ export function Checkout() {
           phone: formData.phone,
           checkIn: cin,
           checkOut: cout,
-          adults,
-          children,
+          guests: adults + children,
           subTotal,
           discountAmount: discountApplied,
           taxAmount,
@@ -300,14 +284,21 @@ export function Checkout() {
     const invoiceElement = document.getElementById("invoice-container");
     if (!invoiceElement) return;
     
+    const originalScrollY = window.scrollY;
+    window.scrollTo(0, 0);
+
     const printButtons = document.getElementById("print-buttons");
     if (printButtons) printButtons.style.display = 'none';
 
     try {
+      await new Promise(resolve => setTimeout(resolve, 150));
+
       const canvas = await html2canvas(invoiceElement, {
          scale: 2,
          useCORS: true,
-         backgroundColor: '#ffffff'
+         backgroundColor: '#ffffff',
+         scrollY: 0,
+         windowHeight: invoiceElement.scrollHeight
       });
       const imgData = canvas.toDataURL("image/jpeg", 1.0);
       const pdf = new jsPDF("p", "mm", "a4");
@@ -320,6 +311,7 @@ export function Checkout() {
       console.error(err);
     } finally {
       if (printButtons) printButtons.style.display = 'flex';
+      window.scrollTo(0, originalScrollY);
     }
   };
 
@@ -330,7 +322,24 @@ export function Checkout() {
       }, 800);
     }
   }, [isSuccess, invoiceNumber]);
-    if (isSuccess) {
+  if (isLoading)
+    return (
+      <div className="min-h-[50vh] flex items-center justify-center">
+        Đang tải...
+      </div>
+    );
+
+  if (!hotel) {
+    return (
+      <div className="min-h-[50vh] flex items-center justify-center">
+        <p className="text-xl text-slate-500">
+          Dữ liệu đặt phòng không hợp lệ.
+        </p>
+      </div>
+    );
+  }
+
+  if (isSuccess) {
     return (
       <div className="bg-[#FDFAF6] min-h-screen flex flex-col items-center justify-center p-4 py-12">
         <div id="invoice-container" className="bg-white p-8 md:p-12 text-black max-w-2xl w-full border border-slate-200" style={{boxShadow: '0 0 15px rgba(0,0,0,0.1)'}}>
@@ -596,7 +605,23 @@ export function Checkout() {
             <p>Trẻ em: {children}</p>
             <p>Số đêm: {nights}</p>
 
-            <hr />
+            {selections.length > 0 && hotel?.rooms && (
+              <div className="pt-3 pb-1 border-t border-slate-100 mt-3 mb-1">
+                <p className="font-bold text-slate-700 mb-2">Các phòng đã đặt:</p>
+                {selections.map((sel, idx) => {
+                  const room = hotel.rooms.find(r => (r.idStr || r._id) === sel.roomId);
+                  if (!room) return null;
+                  return (
+                    <div key={idx} className="flex justify-between items-start text-slate-800 mb-1">
+                      <span className="pr-2 leading-tight">- {room.name}</span>
+                      <span className="font-bold text-sky-600 whitespace-nowrap">x{sel.qty}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            <hr className="mt-3" />
 
             <div className="flex justify-between">
               <span>Tạm tính</span>

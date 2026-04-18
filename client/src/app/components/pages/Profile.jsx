@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../../../contexts/AuthContext";
-import { User, Settings, History, MessageSquare, Camera, Download, Star } from "lucide-react";
-import { Navigate } from "react-router";
+import { User, Settings, History, MessageSquare, Camera, Download, Star, Heart } from "lucide-react";
+import { Navigate, Link } from "react-router-dom";
 
 export function Profile() {
   const { user, updateUser, logout } = useAuth();
@@ -18,6 +18,10 @@ export function Profile() {
   const [bookings, setBookings] = useState([]);
   const [loadingBookings, setLoadingBookings] = useState(false);
 
+  // Favorites State
+  const [favoriteHotels, setFavoriteHotels] = useState([]);
+  const [loadingFavorites, setLoadingFavorites] = useState(false);
+
   useEffect(() => {
     if (user && activeTab === "bookings") {
       setLoadingBookings(true);
@@ -30,6 +34,17 @@ export function Profile() {
           setLoadingBookings(false);
         })
         .catch(() => setLoadingBookings(false));
+    } else if (user && activeTab === "favorites") {
+      setLoadingFavorites(true);
+      fetch(`/api/users/favorites`, {
+        headers: { "Authorization": `Bearer ${user.token}` }
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) setFavoriteHotels(data.hotels || []);
+          setLoadingFavorites(false);
+        })
+        .catch(() => setLoadingFavorites(false));
     }
   }, [user, activeTab]);
 
@@ -174,6 +189,12 @@ export function Profile() {
                 <History className="w-5 h-5" /> Lịch sử đặt phòng
               </button>
               <button 
+                onClick={() => setActiveTab("favorites")}
+                className={`flex items-center gap-3 w-full px-4 py-3 rounded-xl font-medium transition ${activeTab === "favorites" ? "bg-sky-50 text-sky-600" : "text-slate-600 hover:bg-slate-50"}`}
+              >
+                <Heart className="w-5 h-5" /> Khách sạn yêu thích
+              </button>
+              <button 
                 onClick={() => setActiveTab("reviews")}
                 className={`flex items-center gap-3 w-full px-4 py-3 rounded-xl font-medium transition ${activeTab === "reviews" ? "bg-sky-50 text-sky-600" : "text-slate-600 hover:bg-slate-50"}`}
               >
@@ -303,6 +324,46 @@ export function Profile() {
                           </button>
                        </div>
                     </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {activeTab === "favorites" && (
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-8 animate-in fade-in duration-300">
+              <h3 className="text-2xl font-bold text-slate-800 mb-6">Khách sạn yêu thích</h3>
+              {loadingFavorites ? (
+                <div className="text-center py-10 text-slate-500">Đang tải danh sách...</div>
+              ) : favoriteHotels.length === 0 ? (
+                <div className="text-center py-10">
+                  <div className="text-slate-400 mb-4 flex justify-center">
+                    <Heart className="w-16 h-16" />
+                  </div>
+                  <p className="text-lg font-medium text-slate-600 mb-2">Bạn chưa yêu thích khách sạn nào.</p>
+                  <Link to="/search" className="text-sky-600 hover:underline">Nhấn vào đây để tìm kiếm khách sạn</Link>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {favoriteHotels.map(hotel => (
+                     <div key={hotel.id} className="border border-slate-200 rounded-xl overflow-hidden hover:shadow-md transition">
+                        <Link to={`/hotel/${hotel.id}`}>
+                           <div className="h-40 overflow-hidden bg-slate-100">
+                             {hotel.image ? (
+                               <img src={hotel.image} className="w-full h-full object-cover transition-transform hover:scale-105" alt="" />
+                             ) : (
+                               <div className="w-full h-full flex items-center justify-center text-slate-400">No Image</div>
+                             )}
+                           </div>
+                           <div className="p-4">
+                             <h4 className="font-bold text-slate-800 line-clamp-1 mb-1">{hotel.name}</h4>
+                             <p className="text-xs text-slate-500 line-clamp-1 mb-2">{hotel.location}</p>
+                             <div className="flex items-center gap-1 text-sm text-sky-700 font-bold">
+                                Giá từ {hotel.price?.toLocaleString('vi-VN')} đ
+                             </div>
+                           </div>
+                        </Link>
+                     </div>
                   ))}
                 </div>
               )}

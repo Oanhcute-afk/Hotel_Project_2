@@ -12,7 +12,8 @@ const userSchema = new mongoose.Schema({
   avatar: { type: String, default: '' },
   firebaseUid: { type: String }, // optional, to link existing firebase users
   role: { type: String, enum: ['customer', 'manager', 'admin'], default: 'customer' },
-  lastLogin: { type: Date }
+  lastLogin: { type: Date },
+  favorites: [{ type: String }] // array of hotel idStr
 }, { timestamps: true });
 
 // Hash password before saving

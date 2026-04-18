@@ -11,6 +11,7 @@ export function Home() {
     const fetchVouchers = async () => {
       try {
         const res = await fetch('/api/vouchers');
+        if (!res.ok) throw new Error('Network response was not ok');
         const data = await res.json();
         setVouchers(data.slice(0, 3));
       } catch (err) {
@@ -34,7 +35,10 @@ export function Home() {
 
   useEffect(() => {
     fetch('/api/destinations')
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) throw new Error('Network response was not ok');
+        return res.json();
+      })
       .then(data => {
         if (Array.isArray(data)) setDestinations(data);
         else console.error('Expected array of destinations, got:', data);
@@ -42,7 +46,10 @@ export function Home() {
       .catch(console.error);
 
     fetch('/api/hotels')
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) throw new Error('Network response was not ok');
+        return res.json();
+      })
       .then(data => {
         if (Array.isArray(data)) setHotels(data);
         else console.error('Expected array of hotels, got:', data);

@@ -63,7 +63,8 @@ router.get('/hotels/:id', async (req, res) => {
       image: hotel.images && hotel.images.length > 0 ? hotel.images[0] : hotel.image,
       images: hotel.images || (hotel.image ? [hotel.image] : []),
       amenities: hotel.amenities,
-      propertyType: hotel.propertyType
+      propertyType: hotel.propertyType,
+      rooms: hotel.rooms || []
     });
   } catch (error) {
     res.status(500).json({ message: 'Server Error' });

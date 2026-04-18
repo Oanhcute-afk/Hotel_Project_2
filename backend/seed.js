@@ -13,12 +13,70 @@ const DESTINATIONS = [
 ];
 
 const HOTELS = [
-  { id: "h-1", name: "Ocean Pearl Resort & Spa", location: "Bãi Dài, Phú Quốc", price: 2500000, rating: 4.8, reviews: 1240, stars: 5, image: "https://images.unsplash.com/photo-1671798747374-48d3f3d43e6d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxsdXh1cnklMjBiZWFjaCUyMGhvdGVsJTIwcm9vbXxlbnwxfHx8fDE3NzUxNDI2MTh8MA&ixlib=rb-4.1.0&q=80&w=1080", amenities: ["Bãi biển riêng", "Hồ bơi", "Spa", "Wi-Fi miễn phí", "Bữa sáng miễn phí"], propertyType: "Resort" },
-  { id: "h-2", name: "Nha Trang Bay View Hotel", location: "Đường Trần Phú, Nha Trang", price: 1200000, rating: 4.5, reviews: 856, stars: 4, image: "https://images.unsplash.com/photo-1772764767922-876826060f44?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjb2FzdGFsJTIwcmVzb3J0JTIwcG9vbHxlbnwxfHx8fDE3NzUxNDI2MTh8MA&ixlib=rb-4.1.0&q=80&w=1080", amenities: ["Hồ bơi vô cực", "Phòng gym", "Wi-Fi miễn phí", "Bữa sáng miễn phí"], propertyType: "Khách sạn" },
-  { id: "h-3", name: "Sandy Beach Non Nuoc Resort", location: "Bãi biển Non Nước, Đà Nẵng", price: 1800000, rating: 4.6, reviews: 1022, stars: 4, image: "https://images.unsplash.com/photo-1772860812099-30373d1f3045?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxvY2VhbmZyb250JTIwaG90ZWwlMjBiYWxjb255fGVufDF8fHx8MTc3NTE0MjYxOHww&ixlib=rb-4.1.0&q=80&w=1080", amenities: ["Bãi biển riêng", "Hồ bơi", "Nhà hàng ven biển", "Wi-Fi miễn phí"], propertyType: "Resort" },
-  { id: "h-4", name: "Cozy Homestay An Bàng", location: "Biển An Bàng, Hội An", price: 650000, rating: 4.9, reviews: 340, stars: 3, image: "https://images.unsplash.com/photo-1632803716902-8d5e1b7246e2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxiZWFjaCUyMHJlc29ydCUyMGhlcm8lMjBvY2VhbiUyMHZpZXd8ZW58MXx8fHwxNzc1MTQyNjE3fDA&ixlib=rb-4.1.0&q=80&w=1080", amenities: ["Xe đạp miễn phí", "Wi-Fi miễn phí", "Bếp chung", "Gần biển"], propertyType: "Homestay" },
-  { id: "h-5", name: "Vinpearl Resort & Spa", location: "Đảo Hòn Tre, Nha Trang", price: 3200000, rating: 4.7, reviews: 2150, stars: 5, image: "https://images.unsplash.com/photo-1698809807960-758cf416e96e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwaHUlMjBxdW9jJTIwYmVhY2glMjB2aWV0bmFtfGVufDF8fHx8MTc3NTE0MjYxN3ww&ixlib=rb-4.1.0&q=80&w=1080", amenities: ["Bãi biển riêng", "Hồ bơi lớn", "Spa", "Công viên nước", "Bữa sáng miễn phí"], propertyType: "Resort" },
-  { id: "h-6", name: "My Khe Beach Villa", location: "Biển Mỹ Khê, Đà Nẵng", price: 4500000, rating: 4.8, reviews: 88, stars: 5, image: "https://images.unsplash.com/photo-1772764767922-876826060f44?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjb2FzdGFsJTIwcmVzb3J0JTIwcG9vbHxlbnwxfHx8fDE3NzUxNDI2MTh8MA&ixlib=rb-4.1.0&q=80&w=1080", amenities: ["Bãi biển riêng", "Hồ bơi riêng", "BBQ", "Nhà bếp", "Wi-Fi miễn phí"], propertyType: "Villa" }
+  { 
+    id: "h-1", name: "Ocean Pearl Resort & Spa", location: "Bãi Dài, Phú Quốc", price: 2500000, 
+    rating: 4.8, reviews: 1240, stars: 5, 
+    image: "https://images.unsplash.com/photo-1671798747374-48d3f3d43e6d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxsdXh1cnklMjBiZWFjaCUyMGhvdGVsJTIwcm9vbXxlbnwxfHx8fDE3NzUxNDI2MTh8MA&ixlib=rb-4.1.0&q=80&w=1080", 
+    amenities: ["Bãi biển riêng", "Hồ bơi", "Spa", "Wi-Fi miễn phí", "Bữa sáng miễn phí"], 
+    propertyType: "Resort",
+    rooms: [
+      { idStr: 'r-1-1', name: 'Phòng Đôi Tiêu Chuẩn', capacity: { adults: 2, children: 1 }, size: 25, bedType: '1 giường đôi lớn', price: 2500000, count: 5, facilities: ["Wi-Fi miễn phí", "Điều hòa", "Minibar"] },
+      { idStr: 'r-1-2', name: 'Phòng Gia Đình View Biển', capacity: { adults: 4, children: 2 }, size: 45, bedType: '2 giường đôi lớn', price: 4500000, count: 2, facilities: ["Wi-Fi miễn phí", "Ban công", "Bồn tắm"] }
+    ]
+  },
+  { 
+    id: "h-2", name: "Nha Trang Bay View Hotel", location: "Đường Trần Phú, Nha Trang", price: 1200000, 
+    rating: 4.5, reviews: 856, stars: 4, 
+    image: "https://images.unsplash.com/photo-1772764767922-876826060f44?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjb2FzdGFsJTIwcmVzb3J0JTIwcG9vbHxlbnwxfHx8fDE3NzUxNDI2MTh8MA&ixlib=rb-4.1.0&q=80&w=1080", 
+    amenities: ["Hồ bơi vô cực", "Phòng gym", "Wi-Fi miễn phí", "Bữa sáng miễn phí"], 
+    propertyType: "Khách sạn",
+    rooms: [
+      { idStr: 'r-2-1', name: 'Phòng Đơn Tiêu Chuẩn', capacity: { adults: 1, children: 0 }, size: 18, bedType: '1 giường đơn', price: 800000, count: 10, facilities: ["Wi-Fi miễn phí", "Điều hòa"] },
+      { idStr: 'r-2-2', name: 'Phòng Đôi Hướng Biển', capacity: { adults: 2, children: 1 }, size: 28, bedType: '1 giường đôi cực lớn', price: 1200000, count: 4, facilities: ["Wi-Fi miễn phí", "Ban công", "Tivi"] }
+    ]
+  },
+  { 
+    id: "h-3", name: "Sandy Beach Non Nuoc Resort", location: "Bãi biển Non Nước, Đà Nẵng", price: 1800000, 
+    rating: 4.6, reviews: 1022, stars: 4, 
+    image: "https://images.unsplash.com/photo-1772860812099-30373d1f3045?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxvY2VhbmZyb250JTIwaG90ZWwlMjBiYWxjb255fGVufDF8fHx8MTc3NTE0MjYxOHww&ixlib=rb-4.1.0&q=80&w=1080", 
+    amenities: ["Bãi biển riêng", "Hồ bơi", "Nhà hàng ven biển", "Wi-Fi miễn phí"], 
+    propertyType: "Resort",
+    rooms: [
+      { idStr: 'r-3-1', name: 'Phòng Superior Có Ban Công', capacity: { adults: 2, children: 1 }, size: 30, bedType: '2 giường đơn', price: 1800000, count: 8, facilities: ["Wi-Fi miễn phí", "Ban công", "Bữa sáng miễn phí"] }
+    ]
+  },
+  { 
+    id: "h-4", name: "Cozy Homestay An Bàng", location: "Biển An Bàng, Hội An", price: 650000, 
+    rating: 4.9, reviews: 340, stars: 3, 
+    image: "https://images.unsplash.com/photo-1632803716902-8d5e1b7246e2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxiZWFjaCUyMHJlc29ydCUyMGhlcm8lMjBvY2VhbiUyMHZpZXd8ZW58MXx8fHwxNzc1MTQyNjE3fDA&ixlib=rb-4.1.0&q=80&w=1080", 
+    amenities: ["Xe đạp miễn phí", "Wi-Fi miễn phí", "Bếp chung", "Gần biển"], 
+    propertyType: "Homestay",
+    rooms: [
+      { idStr: 'r-4-1', name: 'Phòng Dorm Không Giường Tầng', capacity: { adults: 1, children: 0 }, size: 15, bedType: '1 giường đơn con nhộng', price: 250000, count: 6, facilities: ["Wi-Fi miễn phí", "Tủ khóa"] },
+      { idStr: 'r-4-2', name: 'Phòng Riêng Tư', capacity: { adults: 2, children: 0 }, size: 20, bedType: '1 giường queen', price: 650000, count: 2, facilities: ["Wi-Fi miễn phí", "Phòng tắm riêng"] }
+    ]
+  },
+  { 
+    id: "h-5", name: "Vinpearl Resort & Spa", location: "Đảo Hòn Tre, Nha Trang", price: 3200000, 
+    rating: 4.7, reviews: 2150, stars: 5, 
+    image: "https://images.unsplash.com/photo-1698809807960-758cf416e96e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwaHUlMjBxdW9jJTIwYmVhY2glMjB2aWV0bmFtfGVufDF8fHx8MTc3NTE0MjYxN3ww&ixlib=rb-4.1.0&q=80&w=1080", 
+    amenities: ["Bãi biển riêng", "Hồ bơi lớn", "Spa", "Công viên nước", "Bữa sáng miễn phí"], 
+    propertyType: "Resort",
+    rooms: [
+      { idStr: 'r-5-1', name: 'Villa Gắn Liền Bể Bơi', capacity: { adults: 6, children: 3 }, size: 120, bedType: '3 giường đôi', price: 6500000, count: 3, facilities: ["Bể bơi riêng", "Nhà bếp", "Khu BBQ"] },
+      { idStr: 'r-5-2', name: 'Phòng Deluxe Hướng Đại Dương', capacity: { adults: 2, children: 2 }, size: 45, bedType: '1 giường king', price: 3200000, count: 10, facilities: ["Wi-Fi", "View biển", "Bồn tắm"] }
+    ]
+  },
+  { 
+    id: "h-6", name: "My Khe Beach Villa", location: "Biển Mỹ Khê, Đà Nẵng", price: 4500000, 
+    rating: 4.8, reviews: 88, stars: 5, 
+    image: "https://images.unsplash.com/photo-1772764767922-876826060f44?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjb2FzdGFsJTIwcmVzb3J0JTIwcG9vbHxlbnwxfHx8fDE3NzUxNDI2MTh8MA&ixlib=rb-4.1.0&q=80&w=1080", 
+    amenities: ["Bãi biển riêng", "Hồ bơi riêng", "BBQ", "Nhà bếp", "Wi-Fi miễn phí"], 
+    propertyType: "Villa",
+    rooms: [
+      { idStr: 'r-6-1', name: 'Villa Nguyên Căn Hướng Biển', capacity: { adults: 8, children: 4 }, size: 200, bedType: '4 giường king', price: 4500000, count: 1, facilities: ["Bể bơi", "Sân vườn", "Máy giặt"] }
+    ]
+  }
 ];
 
 const VOUCHERS = [

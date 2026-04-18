@@ -16,7 +16,7 @@ import { GuestReviews } from "../ui/GuestReviews";
 export function HotelDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user, requireAuth } = useAuth();
+  const { user, requireAuth, updateUser } = useAuth();
 
   const [hotel, setHotel] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -36,10 +36,14 @@ export function HotelDetail() {
       .then(data => {
         if (!data.message) {
           setHotel(data);
-          // Set initial rooms
-          const roomsStr = JSON.stringify([{ idStr: 'legacy-room', name: 'Phòng Tiêu Chuẩn', capacity: { adults: 2, children: 0 }, size: 20, bedType: '1 giường đôi', price: data.price, count: 5, facilities: data.amenities || [] }]);
-          const parsedRooms = (data.rooms && data.rooms.length > 0) ? data.rooms : JSON.parse(roomsStr);
-          setFilteredRooms(parsedRooms);
+          // Load rooms from DB and apply initial filter
+          const rawRooms = data.rooms || [];
+          const initialFiltered = rawRooms.filter(r => {
+            const adultCap = r.capacity?.adults ?? 2;
+            const childCap = r.capacity?.children ?? 0;
+            return adultCap >= 2 && childCap >= 0; // matching default states (2 adults, 0 children)
+          });
+          setFilteredRooms(initialFiltered);
         }
         setIsLoading(false);
       })
@@ -77,11 +81,8 @@ export function HotelDetail() {
   const primaryImage = images[0];
   const secondaryImages = images.slice(1, images.length > 1 ? 5 : 1);
 
-  // Use hotel.rooms if available, fallback for old objects
-  const roomsStr = JSON.stringify([
-    { idStr: 'legacy-room', name: 'Phòng Tiêu Chuẩn', capacity: { adults: 2, children: 0 }, size: 20, bedType: '1 giường đôi', price: hotel.price, count: 5, facilities: hotel.amenities || [] }
-  ]);
-  const rooms = hotel.rooms && hotel.rooms.length > 0 ? hotel.rooms : JSON.parse(roomsStr);
+  // Use hotel.rooms from DB
+  const rooms = hotel.rooms || [];
 
   const handleSearchChange = () => {
     const matchedRooms = rooms.filter(r => {
@@ -121,6 +122,31 @@ export function HotelDetail() {
     });
   };
 
+  const handleToggleFavorite = async () => {
+    if (!user) {
+      requireAuth(() => {});
+      return;
+    }
+    try {
+      const res = await fetch('/api/users/favorites/toggle', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${user.token}`
+        },
+        body: JSON.stringify({ hotelId: hotel.id || hotel.idStr || hotel._id })
+      });
+      const data = await res.json();
+      if (data.success) {
+        updateUser({ favorites: data.favorites });
+      }
+    } catch (error) {
+      console.error('Failed to toggle favorite', error);
+    }
+  };
+
+  const isFavorited = user?.favorites?.includes(hotel?.id || hotel?.idStr || hotel?._id);
+
   // Helper text
   let ratingText = "Tốt";
   if (hotel.rating >= 9) ratingText = "Tuyệt hảo";
@@ -129,16 +155,7 @@ export function HotelDetail() {
   return (
     <div className="bg-white min-h-screen pb-20">
       
-      {/* Top Nav Tabs */}
-      <div className="border-b border-slate-200 sticky top-16 z-20 bg-white">
-        <div className="max-w-6xl mx-auto px-4 flex gap-6 overflow-x-auto">
-          {["Overview", "Availability", "Facilities", "House rules", "Important and legal info", "Guest reviews"].map((tab, i) => (
-            <button key={tab} className={`py-4 text-sm font-bold border-b-2 whitespace-nowrap transition-colors ${i === 0 ? "border-sky-600 text-sky-700" : "border-transparent text-slate-500 hover:text-slate-800"}`}>
-              {tab}
-            </button>
-          ))}
-        </div>
-      </div>
+
 
       <div className="max-w-6xl mx-auto px-4 pt-6">
         
@@ -159,9 +176,9 @@ export function HotelDetail() {
           </div>
           
           <div className="flex gap-4 items-center">
-            <button className="p-2 hover:bg-slate-100 rounded-full text-slate-600"><Heart className="w-5 h-5" /></button>
-            <button className="p-2 hover:bg-slate-100 rounded-full text-slate-600"><Share2 className="w-5 h-5" /></button>
-            <button className="bg-sky-600 hover:bg-sky-700 text-white px-6 py-2 rounded font-bold transition shadow-sm">Reserve</button>
+            <button onClick={handleToggleFavorite} className="p-2 hover:bg-slate-100 rounded-full transition">
+              <Heart className={`w-5 h-5 transition ${isFavorited ? 'fill-red-500 text-red-500' : 'text-slate-600'}`} />
+            </button>
           </div>
         </div>
 
