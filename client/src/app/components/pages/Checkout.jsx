@@ -15,19 +15,24 @@ import { useAuth } from "../../../contexts/AuthContext";
 import { jsPDF } from "jspdf";
 import html2canvas from "html2canvas";
 
+/**
+ * COMPONENT: Checkout Page
+ * Logic: Xử lý quy trình đặt phòng, tính toán giá tiền, áp dụng voucher và xuất hóa đơn PDF
+ */
 export function Checkout() {
-  const { id } = useParams();
+  const { id } = useParams(); // Lấy ID khách sạn từ URL
   const navigate = useNavigate();
 
   const [hotel, setHotel] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const { user, requireAuth } = useAuth();
+  const { user, requireAuth } = useAuth(); // Hook quản lý người dùng
 
-  const [isSuccess, setIsSuccess] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false); // Trạng thái đặt phòng thành công
+  const [isSubmitting, setIsSubmitting] = useState(false); // Trạng thái đang gửi yêu cầu
   const [errorMessage, setErrorMessage] = useState("");
 
+  // Dữ liệu người đặt phòng
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -35,7 +40,7 @@ export function Checkout() {
     cccd: ""
   });
 
-  const [paymentMethod, setPaymentMethod] = useState("qr");
+  const [paymentMethod, setPaymentMethod] = useState("qr"); // Mặc định chọn thanh toán QR
 
   const [selectedVoucher, setSelectedVoucher] = useState(null);
   const [showVouchers, setShowVouchers] = useState(false);
@@ -45,6 +50,7 @@ export function Checkout() {
 
   const [searchParams] = useSearchParams();
 
+  // Lấy các tham số tìm kiếm từ URL (Ngày nhận/trả, số lượng khách, các phòng đã chọn)
   const [checkIn, setCheckIn] = useState(
     searchParams.get("checkIn") || ""
   );
@@ -55,12 +61,16 @@ export function Checkout() {
   const adults = parseInt(searchParams.get("adults") || "2");
   const children = parseInt(searchParams.get("children") || "0");
   
+  // Parse danh sách phòng đã chọn từ chuỗi JSON trong URL
   const rawSelections = searchParams.get("selections");
   const selections = rawSelections ? JSON.parse(rawSelections) : [];
   const nightsQuery = searchParams.get("nights");
 
   const today = new Date().toISOString().split("T")[0];
 
+  /**
+   * EFFECT: Lấy dữ liệu Khách sạn và Voucher khi trang web được tải
+   */
   useEffect(() => {
     fetch("/api/vouchers")
       .then(res => res.json())
@@ -84,6 +94,9 @@ export function Checkout() {
     }
   }, [id]);
 
+  /**
+   * EFFECT: Tự động điền thông tin nếu người dùng đã đăng nhập
+   */
   useEffect(() => {
     requireAuth(() => {
       if (user) {
@@ -100,6 +113,9 @@ export function Checkout() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  /**
+   * LOGIC: Tự động đề xuất Voucher tốt nhất cho khách hàng
+   */
   useEffect(() => {
     if (hotel && availableVouchers.length > 0 && !selectedVoucher) {
       const roomTotal = hotel.price * 2;
@@ -129,6 +145,9 @@ export function Checkout() {
     }
   }, [hotel, availableVouchers]);
 
+  /**
+   * LOGIC: Tính số đêm lưu trú
+   */
   const calculateNights = () => {
     if (!checkIn || !checkOut) return 0;
 
@@ -146,8 +165,12 @@ export function Checkout() {
 
   const nights = nightsQuery ? parseInt(nightsQuery) : calculateNights() || 1;
 
+  /**
+   * LOGIC: Tính toán chi phí chi tiết
+   */
   let calculatedSubtotal = 0;
   if (selections.length > 0 && hotel?.rooms) {
+    // Tính giá dựa trên danh sách phòng cụ thể đã chọn
     selections.forEach(sel => {
        const room = hotel.rooms.find(r => (r.idStr || r._id) === sel.roomId);
        if (room) {
@@ -155,7 +178,7 @@ export function Checkout() {
        }
     });
   } else {
-    // Fallback
+    // Dự phòng: Tính giá theo đầu người nếu không có danh sách phòng
     const adultPrice = hotel ? hotel.price : 0;
     const childPrice = hotel ? hotel.price * 0.7 : 0;
     calculatedSubtotal = hotel ? (adults * adultPrice + children * childPrice) * nights : 0;
@@ -163,8 +186,8 @@ export function Checkout() {
 
   const subTotal = calculatedSubtotal;
 
+  // Tính số tiền được giảm từ Voucher
   let discountApplied = 0;
-
   if (selectedVoucher) {
     if (selectedVoucher.type === "percent") {
       const discountVal = selectedVoucher.value <= 1 ? selectedVoucher.value : selectedVoucher.value / 100;
@@ -181,18 +204,16 @@ export function Checkout() {
       discountApplied = selectedVoucher.value;
     }
     
-    // Bounds discount to maximum of subTotal
     discountApplied = Math.min(discountApplied, subTotal);
   }
 
-  const taxAmount =
-    (subTotal - discountApplied) * 0.1;
+  // Thuế 10% sau giảm giá
+  const taxAmount = (subTotal - discountApplied) * 0.1;
+  const finalTotal = subTotal - discountApplied + taxAmount;
 
-  const finalTotal =
-    subTotal - discountApplied + taxAmount;
-
-
-
+  /**
+   * ACTION: Gửi yêu cầu đặt phòng lên Server
+   */
   const handleConfirm = async e => {
     e.preventDefault();
 
@@ -202,39 +223,33 @@ export function Checkout() {
     try {
       const cin = new Date(checkIn);
       const cout = new Date(checkOut);
-
       const now = new Date();
       now.setHours(0, 0, 0, 0);
 
+      // Validate dữ liệu ngày tháng
       if (!checkIn || !checkOut) {
-        setErrorMessage(
-          "Vui lòng chọn ngày nhận và trả phòng."
-        );
+        setErrorMessage("Vui lòng chọn ngày nhận và trả phòng.");
         setIsSubmitting(false);
         return;
       }
 
       if (cin < now) {
-        setErrorMessage(
-          "Ngày nhận phòng không được ở quá khứ."
-        );
+        setErrorMessage("Ngày nhận phòng không được ở quá khứ.");
         setIsSubmitting(false);
         return;
       }
 
       if (cout <= cin) {
-        setErrorMessage(
-          "Ngày trả phòng phải sau ngày nhận phòng."
-        );
+        setErrorMessage("Ngày trả phòng phải sau ngày nhận phòng.");
         setIsSubmitting(false);
         return;
       }
 
+      // Gửi API
       const res = await fetch("/api/bookings", {
         method: "POST",
         headers: {
-          "Content-Type":
-            "application/json"
+          "Content-Type": "application/json"
         },
         body: JSON.stringify({
           hotelId: id,
@@ -259,34 +274,28 @@ export function Checkout() {
       const data = await res.json();
 
       if (res.ok && data.success) {
-        setInvoiceNumber(
-          data.invoiceNumber ||
-            `INV-${Math.floor(
-              Math.random() *
-                1000000
-            )}`
-        );
-
-        setIsSuccess(true);
+        setInvoiceNumber(data.invoiceNumber || `INV-${Math.floor(Math.random() * 1000000)}`);
+        setIsSuccess(true); // Hiển thị giao diện hóa đơn thành công
       } else {
-        setErrorMessage(
-          data.message ||
-            "Thanh toán thất bại"
-        );
+        setErrorMessage(data.message || "Thanh toán thất bại");
       }
     } catch (err) {
-      setErrorMessage("Network error");
+      setErrorMessage("Lỗi mạng, vui lòng thử lại");
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  /**
+   * ACTION: Tạo hóa đơn PDF từ giao diện HTML
+   * Sử dụng html2canvas để chụp ảnh và jsPDF để đóng gói thành PDF
+   */
   const generatePDF = async () => {
     const invoiceElement = document.getElementById("invoice-container");
     if (!invoiceElement) return;
     
     const originalScrollY = window.scrollY;
-    window.scrollTo(0, 0);
+    window.scrollTo(0, 0); // Cuộn lên đầu để chụp toàn bộ ảnh
 
     const printButtons = document.getElementById("print-buttons");
     if (printButtons) printButtons.style.display = 'none';
@@ -316,6 +325,7 @@ export function Checkout() {
     }
   };
 
+  // Tự động tải PDF sau khi đặt thành công
   useEffect(() => {
     if (isSuccess && invoiceNumber) {
       setTimeout(() => {
@@ -323,6 +333,7 @@ export function Checkout() {
       }, 800);
     }
   }, [isSuccess, invoiceNumber]);
+
   if (isLoading)
     return (
       <div className="min-h-[50vh] flex items-center justify-center">
@@ -340,6 +351,7 @@ export function Checkout() {
     );
   }
 
+  // GIAO DIỆN HÓA ĐƠN THÀNH CÔNG
   if (isSuccess) {
     return (
       <div className="bg-[#FDFAF6] min-h-screen flex flex-col items-center justify-center p-4 py-12">
@@ -482,6 +494,8 @@ export function Checkout() {
       </div>
     );
   }
+
+  // GIAO DIỆN NHẬP THÔNG TIN THANH TOÁN
   return (
     <div className="bg-[#FDFAF6] min-h-screen py-10 px-4">
       <button
@@ -493,7 +507,7 @@ export function Checkout() {
 
       <div className="grid md:grid-cols-3 gap-8">
         
-        {/* FORM */}
+        {/* CỘT TRÁI: FORM NHẬP LIỆU */}
         <div className="md:col-span-2 bg-white p-6 rounded-xl shadow">
           <h2 className="text-2xl font-bold mb-6">Thông tin đặt phòng</h2>
 
@@ -531,7 +545,7 @@ export function Checkout() {
             />
           </div>
 
-          {/* Voucher */}
+          {/* Chọn Voucher */}
           <div className="mt-6">
             <label className="font-semibold flex items-center gap-2 mb-2">
               <TicketPercent /> Voucher
@@ -554,7 +568,7 @@ export function Checkout() {
             </select>
           </div>
 
-          {/* Payment */}
+          {/* Chọn phương thức thanh toán */}
           <div className="mt-8">
             <h3 className="font-semibold mb-4">Phương thức thanh toán</h3>
 
@@ -596,7 +610,7 @@ export function Checkout() {
           </button>
         </div>
 
-        {/* SUMMARY */}
+        {/* CỘT PHẢI: TÓM TẮT ĐƠN HÀNG */}
         <div className="bg-white p-6 rounded-xl shadow h-fit">
           <h2 className="text-xl font-bold mb-4">Tóm tắt</h2>
 
@@ -644,7 +658,7 @@ export function Checkout() {
             <hr />
 
             <div className="flex justify-between font-bold text-lg">
-              <span>Tổng</span>
+              <span>Tổng cộng</span>
               <span>{finalTotal.toLocaleString()}₫</span>
             </div>
           </div>
@@ -653,4 +667,4 @@ export function Checkout() {
       </div>
     </div>
   );
-}
+}

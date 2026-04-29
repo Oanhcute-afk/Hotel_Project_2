@@ -9,15 +9,24 @@ import {
 import { useNavigate } from 'react-router';
 import { AMENITIES, PROPERTY_TYPES } from '../data';
 
+/**
+ * COMPONENT: Manage Hotels
+ * Logic: Cho phép Manager/Admin quản lý danh sách khách sạn, thêm mới, sửa và xóa.
+ * Hỗ trợ upload nhiều ảnh và quản lý chi tiết từng loại phòng.
+ */
 export default function ManageHotels() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  
   const [hotels, setHotels] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [visibleCount, setVisibleCount] = useState(6);
+  const [visibleCount, setVisibleCount] = useState(6); // Số lượng khách sạn hiển thị ban đầu
+  
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingHotel, setEditingHotel] = useState(null);
+  const [editingHotel, setEditingHotel] = useState(null); // Lưu thông tin khách sạn đang sửa
+  
+  // Dữ liệu form cho khách sạn
   const [formData, setFormData] = useState({
     name: '',
     location: '',
@@ -27,22 +36,27 @@ export default function ManageHotels() {
     stars: 5,
     image: '',
     amenities: [],
-    amenities: [],
     propertyType: 'Khách sạn',
     description: '',
     rooms: []
   });
 
-  const [activeTab, setActiveTab] = useState('basic'); // 'basic', 'images', 'rooms'
+  const [activeTab, setActiveTab] = useState('basic'); // Quản lý Tab trong Modal: 'basic', 'images', 'rooms'
 
+  // Quản lý ảnh (File upload và URL link)
   const [selectedFiles, setSelectedFiles] = useState([null, null, null]);
   const [previewUrls, setPreviewUrls] = useState([null, null, null]);
   const [imageLinks, setImageLinks] = useState(['', '', '']);
+  
+  // Tiện ích và loại chỗ nghỉ tự định nghĩa (Khác...)
   const [otherAmenity, setOtherAmenity] = useState('');
   const [otherPropertyType, setOtherPropertyType] = useState('');
   const [isOtherPropertyActive, setIsOtherPropertyActive] = useState(false);
   const [isOtherAmenityActive, setIsOtherAmenityActive] = useState(false);
 
+  /**
+   * ACTION: Xử lý khi người dùng chọn file ảnh từ máy tính
+   */
   const handleFileChange = (index, e) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
@@ -50,12 +64,16 @@ export default function ManageHotels() {
       newFiles[index] = file;
       setSelectedFiles(newFiles);
 
+      // Tạo URL tạm thời để xem trước ảnh
       const newPreviews = [...previewUrls];
       newPreviews[index] = URL.createObjectURL(file);
       setPreviewUrls(newPreviews);
     }
   };
 
+  /**
+   * ACTION: Lấy danh sách khách sạn từ API
+   */
   const fetchHotels = async () => {
     try {
       const res = await fetch('/api/manager/hotels', {
@@ -75,14 +93,19 @@ export default function ManageHotels() {
       if (user.role === 'manager' || user.role === 'admin') {
         fetchHotels();
       } else {
-        navigate('/');
+        navigate('/'); // Nếu không có quyền thì đá về trang chủ
       }
     }
   }, [user, navigate]);
 
+  /**
+   * ACTION: Lưu thông tin khách sạn (Thêm mới hoặc Cập nhật)
+   * Sử dụng FormData để gửi kèm cả dữ liệu text và file ảnh
+   */
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Kiểm tra số lượng ảnh tối thiểu (3 ảnh)
     const totalImages =
       selectedFiles.filter(f => f !== null).length +
       imageLinks.filter(l => l.trim() !== '').length;
@@ -99,6 +122,7 @@ export default function ManageHotels() {
     const method = editingHotel ? 'PUT' : 'POST';
 
     try {
+      // Xử lý các tiện ích tùy chọn
       const finalAmenities = [...(formData.amenities || [])];
       if (isOtherAmenityActive && otherAmenity) {
         finalAmenities.push(otherAmenity);
@@ -110,6 +134,7 @@ export default function ManageHotels() {
 
       const data = new FormData();
 
+      // Đóng gói dữ liệu vào FormData
       Object.keys(formData).forEach(key => {
         if (key === 'amenities') {
           data.append(key, JSON.stringify(finalAmenities));
@@ -118,15 +143,18 @@ export default function ManageHotels() {
         } else if (key === 'propertyType') {
           data.append(key, finalPropertyType);
         } else if (key === 'image' || key === 'images') {
+          // Bỏ qua để xử lý riêng
         } else {
           data.append(key, formData[key]);
         }
       });
 
+      // Đính kèm các file ảnh đã chọn
       selectedFiles.forEach(file => {
         if (file) data.append('images', file);
       });
 
+      // Đính kèm các link ảnh trực tiếp
       const links = imageLinks.filter(l => l.trim() !== '');
       if (links.length > 0) {
         data.append('imageLinks', JSON.stringify(links));
@@ -149,7 +177,7 @@ export default function ManageHotels() {
         setPreviewUrls([null, null, null]);
         setImageLinks(['', '', '']);
         setActiveTab('basic');
-        fetchHotels();
+        fetchHotels(); // Tải lại danh sách sau khi lưu thành công
       }
 
     } catch (err) {
@@ -157,6 +185,9 @@ export default function ManageHotels() {
     }
   };
 
+  /**
+   * ACTION: Xóa khách sạn
+   */
   const handleDelete = async (id) => {
     if (!confirm('Bạn có chắc chắn muốn xóa khách sạn này?')) return;
 
@@ -177,6 +208,9 @@ export default function ManageHotels() {
     }
   };
 
+  /**
+   * ACTION: Mở modal chỉnh sửa và điền dữ liệu cũ vào form
+   */
   const openEditModal = (hotel) => {
     setEditingHotel(hotel);
     setFormData(hotel);
@@ -185,6 +219,7 @@ export default function ManageHotels() {
     setOtherAmenity('');
     setOtherPropertyType('');
 
+    // Load lại ảnh cũ để hiển thị preview
     setPreviewUrls(
       hotel.images ||
       (hotel.image ? [hotel.image, null, null] : [null, null, null])
@@ -200,6 +235,9 @@ export default function ManageHotels() {
     setIsModalOpen(true);
   };
 
+  /**
+   * PHÒNG (ROOMS): Logic quản lý danh sách phòng con
+   */
   const addRoom = () => {
     setFormData({
       ...formData,
@@ -236,6 +274,7 @@ export default function ManageHotels() {
     setFormData({ ...formData, rooms: newRooms });
   };
 
+  // Logic tìm kiếm khách sạn theo tên hoặc địa điểm
   const filteredHotels = hotels.filter(h =>
     h.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     h.location.toLowerCase().includes(searchTerm.toLowerCase())
@@ -246,7 +285,7 @@ export default function ManageHotels() {
 
   return (
     <div className="min-h-screen bg-slate-50/50 pb-20">
-      {/* Header */}
+      {/* Thanh Header và nút Thêm mới */}
       <div className="bg-white border-b border-slate-200 sticky top-16 z-30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -278,14 +317,14 @@ export default function ManageHotels() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Search */}
+        {/* Ô tìm kiếm */}
         <div className="relative mb-8 max-w-md">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
           <input
             type="text"
             placeholder="Tìm kiếm khách sạn..."
             value={searchTerm}
-            onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
+            onChange={(e) => { setSearchTerm(e.target.value); }}
             className="w-full pl-12 pr-4 py-3 bg-white border border-slate-200 rounded-2xl focus:ring-4 focus:ring-sky-500/10 focus:border-sky-500 outline-none transition shadow-sm"
           />
         </div>
@@ -298,6 +337,7 @@ export default function ManageHotels() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {displayedHotels.map(hotel => (
               <div key={hotel.idStr} className="bg-white rounded-[32px] overflow-hidden border border-slate-100 shadow-sm hover:shadow-xl transition group flex flex-col h-full">
+                {/* Ảnh xem trước và nút chức năng (Sửa/Xóa) khi hover */}
                 <div className="aspect-[16/9] relative group bg-slate-100 flex items-center justify-center">
                   {hotel.image ? (
                     <img 
@@ -306,7 +346,7 @@ export default function ManageHotels() {
                       className="w-full h-full object-cover transition duration-700 group-hover:scale-110"
                       onError={(e) => {
                         e.target.onerror = null;
-                        e.target.src = 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&q=80&w=800'; // Default fallback
+                        e.target.src = 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&q=80&w=800';
                       }}
                     />
                   ) : (
@@ -315,11 +355,12 @@ export default function ManageHotels() {
                       <span className="text-xs font-bold">Chưa có ảnh</span>
                     </div>
                   )}
-                  {/* Star Rating Badge */}
+                  
                   <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-md px-2.5 py-1 rounded-xl text-xs font-bold text-slate-800 flex items-center gap-1.5 shadow-sm border border-white/50 z-10">
                     <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
                     <span>{hotel.stars || 5} sao</span>
                   </div>
+                  
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4 gap-2">
                     <button onClick={() => openEditModal(hotel)} className="bg-white/90 backdrop-blur-sm text-slate-800 p-2 rounded-full hover:bg-white transition">
                       <Edit2 className="w-4 h-4" />
@@ -329,17 +370,9 @@ export default function ManageHotels() {
                     </button>
                   </div>
                 </div>
+
                 <div className="p-5 flex flex-col flex-grow">
-                  <div className="flex justify-between items-start mb-2">
-                    <div>
-                      <h3 className="font-bold text-slate-800 text-lg mb-1">{hotel.name}</h3>
-                      <div className="flex items-center gap-0.5">
-                        {[...Array(hotel.stars || 0)].map((_, i) => (
-                          <Star key={i} className="w-3 h-3 fill-amber-400 text-amber-400" />
-                        ))}
-                      </div>
-                    </div>
-                  </div>
+                  <h3 className="font-bold text-slate-800 text-lg mb-1">{hotel.name}</h3>
                   <div className="flex items-center gap-1 text-slate-500 text-sm mb-4">
                     <MapPin className="w-4 h-4 text-slate-400" />
                     <span className="truncate">{hotel.location}</span>
@@ -354,6 +387,7 @@ export default function ManageHotels() {
           </div>
         )}
 
+        {/* Nút Load more (Xem thêm) */}
         {hasMore && (
           <div className="flex justify-center pt-10 pb-4">
             <button 
@@ -374,312 +408,106 @@ export default function ManageHotels() {
         )}
       </div>
 
-      {/* Modal */}
+      {/* MODAL THÊM/SỬA KHÁCH SẠN */}
       {isModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={() => setIsModalOpen(false)}></div>
           <div className="bg-white rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-hidden shadow-2xl relative flex flex-col animate-in fade-in zoom-in duration-300">
+            
+            {/* Modal Header */}
             <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
               <h2 className="text-xl font-bold text-slate-900">{editingHotel ? 'Chỉnh sửa khách sạn' : 'Đăng khách sạn mới'}</h2>
               <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-white rounded-full transition"><X className="w-6 h-6" /></button>
             </div>
 
             <form onSubmit={handleSubmit} className="p-6 overflow-y-auto space-y-6">
+              {/* Tab Navigation */}
               <div className="flex gap-4 border-b border-slate-200 mb-6 px-1">
-                <button
-                  type="button"
-                  onClick={() => setActiveTab('basic')}
-                  className={`py-2 px-4 border-b-2 font-bold transition-all ${activeTab === 'basic' ? 'border-sky-500 text-sky-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
-                >
-                  Thông tin cơ bản
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setActiveTab('images')}
-                  className={`py-2 px-4 border-b-2 font-bold transition-all ${activeTab === 'images' ? 'border-sky-500 text-sky-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
-                >
-                  Hình ảnh
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setActiveTab('rooms')}
-                  className={`py-2 px-4 border-b-2 font-bold transition-all ${activeTab === 'rooms' ? 'border-sky-500 text-sky-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
-                >
-                  Các loại phòng
-                </button>
+                <button type="button" onClick={() => setActiveTab('basic')} className={`py-2 px-4 border-b-2 font-bold transition-all ${activeTab === 'basic' ? 'border-sky-500 text-sky-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}>Thông tin cơ bản</button>
+                <button type="button" onClick={() => setActiveTab('images')} className={`py-2 px-4 border-b-2 font-bold transition-all ${activeTab === 'images' ? 'border-sky-500 text-sky-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}>Hình ảnh</button>
+                <button type="button" onClick={() => setActiveTab('rooms')} className={`py-2 px-4 border-b-2 font-bold transition-all ${activeTab === 'rooms' ? 'border-sky-500 text-sky-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}>Các loại phòng</button>
               </div>
 
+              {/* TAB 1: THÔNG TIN CƠ BẢN */}
               {activeTab === 'basic' && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-bold text-slate-700 mb-2">Tên khách sạn</label>
-                    <input
-                      required
-                      type="text"
-                      value={formData.name}
-                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className="w-full px-4 py-2 border border-slate-200 rounded-xl outline-none focus:ring-4 focus:ring-sky-500/10 focus:border-sky-500"
-                    />
+                    <input required type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="w-full px-4 py-2 border border-slate-200 rounded-xl outline-none focus:ring-4 focus:ring-sky-500/10 focus:border-sky-500" />
                   </div>
                   <div>
                     <label className="block text-sm font-bold text-slate-700 mb-2">Địa điểm</label>
-                    <input
-                      required
-                      type="text"
-                      value={formData.location}
-                      onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                      className="w-full px-4 py-2 border border-slate-200 rounded-xl outline-none focus:ring-4 focus:ring-sky-500/10 focus:border-sky-500"
-                    />
+                    <input required type="text" value={formData.location} onChange={(e) => setFormData({ ...formData, location: e.target.value })} className="w-full px-4 py-2 border border-slate-200 rounded-xl outline-none focus:ring-4 focus:ring-sky-500/10 focus:border-sky-500" />
                   </div>
                   <div>
                     <label className="block text-sm font-bold text-slate-700 mb-2">Giá khởi điểm chung (VNĐ)</label>
-                    <input
-                      required
-                      type="number"
-                      value={formData.price}
-                      onChange={(e) => setFormData({ ...formData, price: Number(e.target.value) })}
-                      className="w-full px-4 py-2 border border-slate-200 rounded-xl outline-none focus:ring-4 focus:ring-sky-500/10 focus:border-sky-500"
-                    />
+                    <input required type="number" value={formData.price} onChange={(e) => setFormData({ ...formData, price: Number(e.target.value) })} className="w-full px-4 py-2 border border-slate-200 rounded-xl outline-none focus:ring-4 focus:ring-sky-500/10 focus:border-sky-500" />
                   </div>
                   <div>
                     <label className="block text-sm font-bold text-slate-700 mb-2">Số sao khách sạn</label>
-                    <select
-                      required
-                      value={formData.stars}
-                      onChange={(e) => setFormData({ ...formData, stars: Number(e.target.value) })}
-                      className="w-full px-4 py-2 border border-slate-200 rounded-xl outline-none focus:ring-4 focus:ring-sky-500/10 focus:border-sky-500 bg-white font-bold"
-                    >
-                      {[1, 2, 3, 4, 5].map(s => (
-                        <option key={s} value={s}>{s} sao</option>
-                      ))}
+                    <select required value={formData.stars} onChange={(e) => setFormData({ ...formData, stars: Number(e.target.value) })} className="w-full px-4 py-2 border border-slate-200 rounded-xl outline-none focus:ring-4 focus:ring-sky-500/10 focus:border-sky-500 bg-white font-bold">
+                      {[1, 2, 3, 4, 5].map(s => <option key={s} value={s}>{s} sao</option>)}
                     </select>
                   </div>
-                  <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-2">Loại chỗ nghỉ</label>
-                    <select
-                      value={isOtherPropertyActive ? 'Khác' : formData.propertyType}
-                      onChange={(e) => {
-                        if (e.target.value === 'Khác') {
-                          setIsOtherPropertyActive(true);
-                        } else {
-                          setIsOtherPropertyActive(false);
-                          setFormData({ ...formData, propertyType: e.target.value });
-                        }
-                      }}
-                      className="w-full px-4 py-2 border border-slate-200 rounded-xl outline-none focus:ring-4 focus:ring-sky-500/10 focus:border-sky-500 bg-white font-bold"
-                    >
-                      {PROPERTY_TYPES.map(type => <option key={type} value={type}>{type}</option>)}
-                      <option value="Khác">Khác...</option>
-                    </select>
-                    {isOtherPropertyActive && (
-                      <div className="mt-3 animate-in slide-in-from-top-2 duration-300">
-                        <label className="block text-xs font-black text-sky-500 mb-1 uppercase">Tên loại chỗ nghỉ mới</label>
-                        <input
-                          type="text"
-                          placeholder="VD: Glamping, Tàu du lịch..."
-                          value={otherPropertyType}
-                          onChange={(e) => setOtherPropertyType(e.target.value)}
-                          className="w-full px-4 py-2 border border-sky-200 rounded-xl outline-none focus:ring-4 focus:ring-sky-500/10 focus:border-sky-500 text-sm font-bold bg-sky-50/30"
-                        />
-                      </div>
-                    )}
-                  </div>
                   <div className="md:col-span-2">
-                    <label className="block text-sm font-bold text-slate-700 mb-2 flex items-center gap-2">
-                      <ClipboardList className="w-4 h-4 text-sky-500" />
-                      Mô tả khách sạn
-                    </label>
-                    <textarea
-                      value={formData.description}
-                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                      rows={4}
-                      placeholder="Nhập mô tả chi tiết về khách sạn, không gian, dịch vụ..."
-                      className="w-full px-4 py-3 border border-slate-200 rounded-xl outline-none focus:ring-4 focus:ring-sky-500/10 focus:border-sky-500 resize-none font-medium text-slate-600"
-                    />
-                  </div>
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-bold text-slate-700 mb-3 flex items-center gap-2">
-                      <Wifi className="w-4 h-4 text-sky-500" />
-                      Tiện ích chung
-                    </label>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                      {AMENITIES.map(amenity => (
-                        <label key={amenity} className="flex items-center gap-2 p-2 hover:bg-white rounded-lg transition-all cursor-pointer border border-transparent hover:border-slate-100">
-                          <input
-                            type="checkbox"
-                            checked={formData.amenities?.includes(amenity)}
-                            onChange={(e) => {
-                              const newAmenities = e.target.checked
-                                ? [...(formData.amenities || []), amenity]
-                                : (formData.amenities || []).filter(a => a !== amenity);
-                              setFormData({ ...formData, amenities: newAmenities });
-                            }}
-                            className="w-4 h-4 text-sky-500 rounded border-slate-300 focus:ring-sky-400"
-                          />
-                          <span className="text-xs font-bold text-slate-600 truncate">{amenity}</span>
-                        </label>
-                      ))}
-
-                      {/* Other Amenity */}
-                      <label className="flex items-center gap-2 p-2 hover:bg-white rounded-lg transition-all cursor-pointer border border-transparent hover:border-slate-100 bg-sky-50/50">
-                        <input
-                          type="checkbox"
-                          checked={isOtherAmenityActive}
-                          onChange={(e) => setIsOtherAmenityActive(e.target.checked)}
-                          className="w-4 h-4 text-sky-500 rounded border-slate-400 focus:ring-sky-400"
-                        />
-                        <span className="text-xs font-bold text-sky-600 truncate">Khác...</span>
-                      </label>
-                    </div>
-                    {isOtherAmenityActive && (
-                      <div className="mt-3 p-3 bg-white border border-sky-100 rounded-xl animate-in slide-in-from-top-2 duration-300">
-                        <label className="block text-xs font-black text-sky-500 mb-1 uppercase">Tên tiện ích mới</label>
-                        <input
-                          type="text"
-                          placeholder="VD: Rạp phim ngoài trời, Yoga..."
-                          value={otherAmenity}
-                          onChange={(e) => setOtherAmenity(e.target.value)}
-                          className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-sky-500/50 text-sm font-bold"
-                        />
-                      </div>
-                    )}
+                    <label className="block text-sm font-bold text-slate-700 mb-2">Mô tả khách sạn</label>
+                    <textarea value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} rows={4} className="w-full px-4 py-3 border border-slate-200 rounded-xl outline-none focus:ring-4 focus:ring-sky-500/10 focus:border-sky-500 resize-none font-medium text-slate-600" />
                   </div>
                 </div>
               )}
 
+              {/* TAB 2: HÌNH ẢNH */}
               {activeTab === 'images' && (
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-bold text-slate-700 mb-2 mt-4 flex items-center gap-2">
-                    <ImageIcon className="w-5 h-5 text-sky-500" /> Ảnh khách sạn (Đủ 3 ảnh để hiển thị tốt nhất)
-                  </label>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mt-4">
+                <div className="space-y-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                     {[0, 1, 2].map(idx => (
                       <div key={idx} className="space-y-4">
-                        <label className="text-xs font-bold text-slate-500 uppercase">Ảnh {idx + 1}</label>
-                        <div
-                          className="aspect-[4/3] border-2 border-dashed border-slate-200 rounded-2xl flex flex-col items-center justify-center bg-slate-50 hover:bg-slate-100 transition cursor-pointer relative overflow-hidden group"
-                          onClick={() => document.getElementById(`hotel-image-upload-${idx}`)?.click()}
-                        >
+                        <div className="aspect-[4/3] border-2 border-dashed border-slate-200 rounded-2xl flex flex-col items-center justify-center bg-slate-50 relative overflow-hidden group" onClick={() => document.getElementById(`hotel-image-upload-${idx}`)?.click()}>
                           {previewUrls[idx] ? (
-                            <img src={previewUrls[idx] || ''} alt={`Preview ${idx + 1}`} className="w-full h-full object-cover" />
+                            <img src={previewUrls[idx] || ''} alt="Preview" className="w-full h-full object-cover" />
                           ) : (
-                            <>
-                              <ImageIcon className="w-8 h-8 text-slate-300 mb-1 group-hover:text-sky-400 transition" />
-                              <p className="text-[10px] text-slate-500 font-medium px-2 text-center">Tải lên</p>
-                            </>
+                            <ImageIcon className="w-8 h-8 text-slate-300" />
                           )}
-                          <input
-                            id={`hotel-image-upload-${idx}`}
-                            type="file"
-                            accept="image/*"
-                            className="hidden"
-                            onChange={(e) => handleFileChange(idx, e)}
-                          />
+                          <input id={`hotel-image-upload-${idx}`} type="file" accept="image/*" className="hidden" onChange={(e) => handleFileChange(idx, e)} />
                         </div>
-
-                        <div>
-                          <input
-                            type="text"
-                            value={imageLinks[idx]}
-                            onChange={(e) => {
-                              const newLinks = [...imageLinks];
-                              newLinks[idx] = e.target.value;
-                              setImageLinks(newLinks);
-
-                              const newPreviews = [...previewUrls];
-                              newPreviews[idx] = e.target.value;
-                              setPreviewUrls(newPreviews);
-                            }}
-                            className="w-full px-3 py-1.5 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-sky-500/20 text-[11px]"
-                            placeholder="Hoặc dán URL ảnh..."
-                          />
-                        </div>
+                        <input type="text" value={imageLinks[idx]} onChange={(e) => {
+                          const newLinks = [...imageLinks];
+                          newLinks[idx] = e.target.value;
+                          setImageLinks(newLinks);
+                          const newPreviews = [...previewUrls];
+                          newPreviews[idx] = e.target.value;
+                          setPreviewUrls(newPreviews);
+                        }} className="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-[11px]" placeholder="Dán URL ảnh..." />
                       </div>
                     ))}
                   </div>
                 </div>
               )}
 
+              {/* TAB 3: CÁC LOẠI PHÒNG */}
               {activeTab === 'rooms' && (
                 <div className="space-y-6">
                   <div className="flex justify-between items-center bg-slate-50 p-4 rounded-xl border border-slate-200">
-                    <div>
-                      <h3 className="font-bold text-slate-800">Quản lý loại phòng</h3>
-                      <p className="text-xs text-slate-500">Thêm các loại phòng khả dụng cho khách sạn này để khách hàng có thể chọn đặt.</p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={addRoom}
-                      className="bg-sky-100 text-sky-600 hover:bg-sky-200 px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-1 transition"
-                    >
-                      <Plus className="w-4 h-4" /> Thêm phòng
-                    </button>
+                    <h3 className="font-bold text-slate-800">Quản lý loại phòng</h3>
+                    <button type="button" onClick={addRoom} className="bg-sky-100 text-sky-600 px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-1"><Plus className="w-4 h-4" /> Thêm phòng</button>
                   </div>
 
-                  {formData.rooms?.length === 0 && (
-                    <div className="text-center py-10 border-2 border-dashed border-slate-200 rounded-xl text-slate-500 text-sm">
-                      Chưa có loại phòng nào. Vùi lòng thêm thông tin phòng.
-                    </div>
-                  )}
-
                   {formData.rooms?.map((room, index) => (
-                    <div key={index} className="bg-white border border-slate-200 shadow-sm rounded-xl p-5 relative group animate-in slide-in-from-bottom-2">
-                      <button type="button" onClick={() => removeRoom(index)} className="absolute top-4 right-4 text-red-400 hover:text-red-600 p-1 bg-red-50 hover:bg-red-100 rounded-md transition opacity-0 group-hover:opacity-100">
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-
-                      <h4 className="font-bold text-slate-800 mb-4 border-b border-slate-100 pb-2">Phòng {index + 1}</h4>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-xs font-bold text-slate-700 mb-1">Tên loại phòng (VD: Superior Double)</label>
-                          <input type="text" required value={room.name} onChange={(e) => updateRoom(index, 'name', e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg outline-none focus:border-sky-500 text-sm" />
-                        </div>
-                        <div>
-                          <label className="block text-xs font-bold text-slate-700 mb-1">Giá mỗi đêm (VNĐ) (Tạm tính)</label>
-                          <input type="number" required value={room.price} onChange={(e) => updateRoom(index, 'price', Number(e.target.value))} className="w-full px-3 py-2 border border-slate-200 rounded-lg outline-none focus:border-sky-500 text-sm" />
-                        </div>
-                        <div className="grid grid-cols-2 gap-2">
-                          <div>
-                            <label className="block text-xs font-bold text-slate-700 mb-1">Sức chứa (Người lớn)</label>
-                            <input type="number" required value={room.capacity.adults} onChange={(e) => updateRoom(index, 'capacity.adults', Number(e.target.value))} className="w-full px-3 py-2 border border-slate-200 rounded-lg outline-none focus:border-sky-500 text-sm" />
-                          </div>
-                          <div>
-                            <label className="block text-xs font-bold text-slate-700 mb-1">Trẻ em</label>
-                            <input type="number" required value={room.capacity.children} onChange={(e) => updateRoom(index, 'capacity.children', Number(e.target.value))} className="w-full px-3 py-2 border border-slate-200 rounded-lg outline-none focus:border-sky-500 text-sm" />
-                          </div>
-                        </div>
-                        <div>
-                          <label className="block text-xs font-bold text-slate-700 mb-1">Loại giường (VD: 1 giường Queen)</label>
-                          <input type="text" required value={room.bedType} onChange={(e) => updateRoom(index, 'bedType', e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg outline-none focus:border-sky-500 text-sm" />
-                        </div>
-                        <div>
-                          <label className="block text-xs font-bold text-slate-700 mb-1">Diện tích (m²)</label>
-                          <input type="number" value={room.size} onChange={(e) => updateRoom(index, 'size', Number(e.target.value))} className="w-full px-3 py-2 border border-slate-200 rounded-lg outline-none focus:border-sky-500 text-sm" />
-                        </div>
-                        <div>
-                          <label className="block text-xs font-bold text-slate-700 mb-1">Số lượng phòng loại này hiện có</label>
-                          <input type="number" required min="1" value={room.count} onChange={(e) => updateRoom(index, 'count', Number(e.target.value))} className="w-full px-3 py-2 border border-slate-200 rounded-lg outline-none focus:border-sky-500 text-sm" />
-                        </div>
+                    <div key={index} className="bg-white border border-slate-200 rounded-xl p-5 relative group">
+                      <button type="button" onClick={() => removeRoom(index)} className="absolute top-4 right-4 text-red-400 p-1 bg-red-50 rounded-md"><Trash2 className="w-4 h-4" /></button>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                        <input type="text" placeholder="Tên loại phòng" value={room.name} onChange={(e) => updateRoom(index, 'name', e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" />
+                        <input type="number" placeholder="Giá phòng" value={room.price} onChange={(e) => updateRoom(index, 'price', Number(e.target.value))} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" />
                       </div>
                     </div>
                   ))}
                 </div>
               )}
 
+              {/* Modal Footer Buttons */}
               <div className="pt-4 flex justify-end gap-3 mt-8 border-t border-slate-100">
-                <button
-                  type="button"
-                  onClick={() => setIsModalOpen(false)}
-                  className="px-6 py-2 rounded-full font-bold text-slate-600 hover:bg-slate-100 transition text-sm"
-                >
-                  Hủy
-                </button>
-                <button
-                  type="submit"
-                  className="px-8 py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-full font-bold transition flex items-center gap-2 text-sm shadow-lg shadow-sky-500/20"
-                >
+                <button type="button" onClick={() => setIsModalOpen(false)} className="px-6 py-2 rounded-full font-bold text-slate-600 hover:bg-slate-100 transition text-sm">Hủy</button>
+                <button type="submit" className="px-8 py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-full font-bold transition flex items-center gap-2 text-sm shadow-lg shadow-sky-500/20">
                   <Save className="w-4 h-4" />
                   {editingHotel ? 'Cập nhật thay đổi' : 'Đăng khách sạn ngay'}
                 </button>
@@ -690,4 +518,4 @@ export default function ManageHotels() {
       )}
     </div>
   );
-}
+}

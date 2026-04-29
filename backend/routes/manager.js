@@ -10,7 +10,10 @@ import { protect, verifyManager } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-// Multer Config
+/**
+ * MULTER CONFIG: Cấu hình lưu trữ file ảnh khi upload
+ * File sẽ được lưu vào thư mục 'uploads/' với tên file là duy nhất (timestamp + random)
+ */
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, 'uploads/');
@@ -23,24 +26,30 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
-// Get manager stats
+/**
+ * API: Lấy thống kê cho Manager/Admin
+ * Logic: Lọc theo thời gian (Ngày, Tuần, Tháng) và tính toán các chỉ số kinh doanh
+ */
 router.get('/stats', protect, verifyManager, async (req, res) => {
   try {
     const { range } = req.query;
+    // Nếu là admin thì xem được tất cả khách sạn, nếu là manager chỉ xem được khách sạn mình quản lý
     const query = req.user.role === 'admin' ? {} : { managerId: req.user._id };
     const managerHotels = await Hotel.find(query);
     
-    // Include both idStr and _id to be safe
+    // Thu thập danh sách ID của các khách sạn để lọc đơn đặt phòng
     const hotelIds = managerHotels.flatMap(h => [h.idStr, h._id.toString()]);
 
-    // Build time filter
+    // Xây dựng bộ lọc thời gian
     let timeFilter = {};
+    // Chỉ manager mới bị giới hạn theo hotelId, Admin xem tổng thể toàn hệ thống
     if (req.user.role !== 'admin') {
       timeFilter.hotelId = { $in: hotelIds };
     }
     
     const now = new Date();
     
+    // Lọc theo mốc thời gian: Hôm nay, Tuần này, Tháng này
     if (range === 'day') {
       const startOfDay = new Date(now.setHours(0, 0, 0, 0));
       timeFilter.createdAt = { $gte: startOfDay };
@@ -55,17 +64,18 @@ router.get('/stats', protect, verifyManager, async (req, res) => {
 
     const bookings = await Booking.find(timeFilter);
 
-    // Calculate stats
+    // Tính toán các chỉ số chính
     const totalBookings = bookings.length;
     const totalRevenue = bookings.reduce((sum, b) => sum + (b.totalPrice || 0), 0);
     const totalHotels = managerHotels.length;
     
-    // Get review count for manager's hotels
+    // Lấy số lượng đánh giá của các khách sạn đang quản lý
     const totalReviews = await Review.countDocuments({ hotelId: { $in: hotelIds } });
     
+    // Tính tổng công suất phòng (mặc định 20 phòng/khách sạn nếu không có dữ liệu)
     const totalCapacity = managerHotels.reduce((sum, h) => sum + (h.totalRooms || 20), 0);
     
-    // Tính tổng số đêm đã đặt
+    // Tính Tỷ lệ lấp đầy: (Tổng số đêm đã đặt / Tổng số đêm khả dụng) * 100
     let totalNights = 0;
     bookings.forEach(b => {
       const start = new Date(b.checkIn);
@@ -83,7 +93,7 @@ router.get('/stats', protect, verifyManager, async (req, res) => {
       ? Math.min(((totalNights / availableRoomNights) * 100), 100).toFixed(1) 
       : 0;
 
-    // Grouping by date for chart
+    // Chuẩn bị dữ liệu cho Biểu đồ (Grouping theo ngày/tháng)
     const chartData = [];
     if (range === 'month') {
       const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
@@ -130,7 +140,7 @@ router.get('/stats', protect, verifyManager, async (req, res) => {
       });
     }
 
-    // Best hotel
+    // Tìm khách sạn có doanh thu/lượt đặt cao nhất (Top Hotel)
     const hotelBookings = {};
     bookings.forEach(b => {
        hotelBookings[b.hotelId] = (hotelBookings[b.hotelId] || 0) + 1;
@@ -161,11 +171,13 @@ router.get('/stats', protect, verifyManager, async (req, res) => {
     });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ success: false, message: 'Server error' });
+    res.status(500).json({ success: false, message: 'Lỗi hệ thống' });
   }
 });
 
-// Get manager hotels
+/**
+ * QUẢN LÝ KHÁCH SẠN
+ */
 router.get('/hotels', protect, verifyManager, async (req, res) => {
   try {
     const query = req.user.role === 'admin' ? {} : { managerId: req.user._id };
@@ -176,7 +188,7 @@ router.get('/hotels', protect, verifyManager, async (req, res) => {
   }
 });
 
-// Add hotel
+// Thêm khách sạn mới kèm Upload ảnh
 router.post('/hotels', protect, verifyManager, upload.array('images', 3), async (req, res) => {
   try {
     const hotelData = {
@@ -185,12 +197,12 @@ router.post('/hotels', protect, verifyManager, upload.array('images', 3), async 
       images: []
     };
 
-    // Process uploaded files
+    // Lưu các đường dẫn ảnh đã upload thành công
     if (req.files && req.files.length > 0) {
       hotelData.images = req.files.map(file => `http://localhost:5000/uploads/${file.filename}`);
     }
 
-    // Process image links if provided (as a fallback or addition)
+    // Nếu người dùng cung cấp link ảnh trực tiếp (từ web) thì gộp chung vào
     if (req.body.imageLinks) {
        let links = [];
        try {
@@ -201,7 +213,7 @@ router.post('/hotels', protect, verifyManager, upload.array('images', 3), async 
        hotelData.images = [...hotelData.images, ...links].slice(0, 3);
     }
 
-    // Parse amenities if it comes as a JSON string from FormData
+    // Chuyển đổi dữ liệu từ chuỗi (do FormData gửi lên) sang Array/Object
     if (typeof hotelData.amenities === 'string') {
       try {
         hotelData.amenities = JSON.parse(hotelData.amenities);
@@ -210,7 +222,6 @@ router.post('/hotels', protect, verifyManager, upload.array('images', 3), async 
       }
     }
 
-    // Parse rooms if it comes as a JSON string
     if (typeof hotelData.rooms === 'string') {
       try {
         hotelData.rooms = JSON.parse(hotelData.rooms);
@@ -219,7 +230,7 @@ router.post('/hotels', protect, verifyManager, upload.array('images', 3), async 
       }
     }
 
-    // Ensure idStr is generated or provided
+    // Tự động tạo mã định danh duy nhất cho khách sạn (idStr)
     if (!hotelData.idStr) {
       hotelData.idStr = 'hotel-' + Math.random().toString(36).substr(2, 9);
     }
@@ -233,7 +244,7 @@ router.post('/hotels', protect, verifyManager, upload.array('images', 3), async 
   }
 });
 
-// Update hotel
+// Cập nhật thông tin khách sạn
 router.put('/hotels/:id', protect, verifyManager, upload.array('images', 3), async (req, res) => {
   try {
     const query = req.user.role === 'admin' ? { idStr: req.params.id } : { idStr: req.params.id, managerId: req.user._id };
@@ -242,29 +253,26 @@ router.put('/hotels/:id', protect, verifyManager, upload.array('images', 3), asy
 
     const updateData = { ...req.body };
     
-    // Handle images
+    // Xử lý ảnh mới nếu có upload
     let newImages = [];
     if (req.files && req.files.length > 0) {
       newImages = req.files.map(file => `http://localhost:5000/uploads/${file.filename}`);
     }
     
-    // Handle image links from body
     if (req.body.imageLinks) {
       try {
         const links = JSON.parse(req.body.imageLinks);
         newImages = [...newImages, ...links];
       } catch (e) {
-        console.error("Error parsing imageLinks:", e);
+        console.error("Lỗi khi phân giải imageLinks:", e);
       }
     }
     
-    // If new images uploaded or links provided, update
     if (newImages.length > 0) {
       updateData.images = newImages; 
       updateData.image = newImages[0];
     }
 
-    // Parse amenities if it comes as a JSON string from FormData
     if (typeof updateData.amenities === 'string') {
       try {
         updateData.amenities = JSON.parse(updateData.amenities);
@@ -273,7 +281,6 @@ router.put('/hotels/:id', protect, verifyManager, upload.array('images', 3), asy
       }
     }
 
-    // Parse rooms if it comes as a JSON string
     if (typeof updateData.rooms === 'string') {
       try {
         updateData.rooms = JSON.parse(updateData.rooms);
@@ -290,7 +297,7 @@ router.put('/hotels/:id', protect, verifyManager, upload.array('images', 3), asy
   }
 });
 
-// Delete hotel
+// Xóa khách sạn
 router.delete('/hotels/:id', protect, verifyManager, async (req, res) => {
   try {
     const query = req.user.role === 'admin' ? { idStr: req.params.id } : { idStr: req.params.id, managerId: req.user._id };
@@ -302,11 +309,12 @@ router.delete('/hotels/:id', protect, verifyManager, async (req, res) => {
   }
 });
 
-// Get all bookings (Invoices)
+/**
+ * QUẢN LÝ HÓA ĐƠN (BOOKINGS)
+ */
 router.get('/bookings', protect, verifyManager, async (req, res) => {
   try {
-    const query = req.user.role === 'admin' ? {} : { managerId: req.user._id };
-    // We need to find hotels first if not admin
+    // Admin xem toàn bộ, Manager chỉ xem hóa đơn của khách sạn mình quản lý
     let filter = {};
     if (req.user.role !== 'admin') {
       const hotels = await Hotel.find({ managerId: req.user._id });
@@ -320,13 +328,13 @@ router.get('/bookings', protect, verifyManager, async (req, res) => {
   }
 });
 
-// Delete booking
+// Xóa hóa đơn
 router.delete('/bookings/:id', protect, verifyManager, async (req, res) => {
   try {
-    // Basic protection: if manager, check if they own the hotel of this booking
     const booking = await Booking.findById(req.params.id);
     if (!booking) return res.status(404).json({ message: 'Không tìm thấy đơn đặt phòng' });
 
+    // Kiểm tra quyền: Manager chỉ được xóa đơn thuộc khách sạn của mình
     if (req.user.role !== 'admin') {
       const hotel = await Hotel.findOne({ idStr: booking.hotelId, managerId: req.user._id });
       if (!hotel) return res.status(403).json({ message: 'Bạn không có quyền xóa đơn đặt phòng này' });
@@ -340,14 +348,15 @@ router.delete('/bookings/:id', protect, verifyManager, async (req, res) => {
   }
 });
 
-// Get all users (Customers) with activity
+/**
+ * QUẢN LÝ NGƯỜI DÙNG (CUSTOMERS)
+ */
 router.get('/users', protect, verifyManager, async (req, res) => {
   try {
-    // Admin can see all users, managers see only customers
     const query = req.user.role === 'admin' ? {} : { role: 'customer' };
     const users = await User.find(query).select('-password').sort({ createdAt: -1 }).lean();
     
-    // Add activity data (Total bookings)
+    // Gắn thêm thông tin hoạt động: Tổng số đơn hàng, đơn cuối cùng...
     const usersWithActivity = await Promise.all(users.map(async (u) => {
       const bookings = await Booking.find({ email: u.email }).sort({ createdAt: -1 });
       return {
@@ -365,7 +374,9 @@ router.get('/users', protect, verifyManager, async (req, res) => {
   }
 });
 
-// Voucher Management
+/**
+ * QUẢN LÝ VOUCHER
+ */
 router.get('/vouchers', protect, verifyManager, async (req, res) => {
   try {
     const vouchers = await Voucher.find({}).sort({ createdAt: -1 });
@@ -415,3 +426,4 @@ router.delete('/vouchers/:id', protect, verifyManager, async (req, res) => {
 });
 
 export default router;
+

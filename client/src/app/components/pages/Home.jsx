@@ -68,9 +68,9 @@ export function Home() {
 
   return (
     <div className="w-full">
-      {/* Hero Section */}
+      {/* Phần Hero (Ảnh bìa & Tìm kiếm) */}
       <section className="relative h-[600px] flex items-center justify-center">
-        {/* Background Image */}
+        {/* Ảnh nền */}
         <div
           className="absolute inset-0 bg-cover bg-center z-0"
           style={{ backgroundImage: `url('https://images.unsplash.com/photo-1632803716902-8d5e1b7246e2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxiZWFjaCUyMHJlc29ydCUyMGhlcm8lMjBvY2VhbiUyMHZpZXd8ZW58MXx8fHwxNzc1MTQyNjE3fDA&ixlib=rb-4.1.0&q=80&w=1080')` }}
@@ -78,7 +78,7 @@ export function Home() {
           <div className="absolute inset-0 bg-sky-950/40" />
         </div>
 
-        {/* Hero Content */}
+        {/* Nội dung Hero */}
         <div className="relative z-10 text-center px-4 max-w-5xl mx-auto py-12">
           <h1 className="text-4xl md:text-7xl font-black text-white mb-8 drop-shadow-2xl leading-[1.1] tracking-tight">
             Tìm kỳ nghỉ ven biển <br />
@@ -88,12 +88,12 @@ export function Home() {
             Khám phá hàng ngàn resort và khách sạn cao cấp dọc bờ biển xanh mát.
           </p>
 
-          {/* Search Bar */}
+          {/* Thanh tìm kiếm */}
           <form
             onSubmit={handleSearch}
             className="bg-white/95 backdrop-blur-xl rounded-[2rem] p-3 md:p-5 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.2)] flex flex-col md:flex-row gap-3 md:gap-5 max-w-5xl mx-auto items-stretch ring-8 ring-white/10"
           >
-            {/* Destination */}
+            {/* Điểm đến */}
             <div className="flex-[1.5] flex items-center gap-4 px-5 py-4 bg-slate-50 rounded-2xl border border-slate-100 focus-within:ring-2 focus-within:ring-sky-500/20 focus-within:border-sky-500/50 transition-all">
               <MapPin className="text-sky-500 w-6 h-6 flex-shrink-0" />
               <div className="flex flex-col text-left w-full">
@@ -108,7 +108,7 @@ export function Home() {
               </div>
             </div>
 
-            {/* Dates */}
+            {/* Ngày tháng */}
             <div className="flex-[2] flex flex-col md:flex-row gap-3">
               <div className="flex-1 flex items-center gap-4 px-5 py-4 bg-slate-50 rounded-2xl border border-slate-100 focus-within:ring-2 focus-within:ring-sky-500/20 focus-within:border-sky-500/50 transition-all">
                 <Calendar className="text-sky-500 w-5 h-5 flex-shrink-0" />
@@ -138,7 +138,7 @@ export function Home() {
               </div>
             </div>
 
-            {/* Guests */}
+            {/* Khách hàng */}
             <div className="flex-1 flex items-center gap-4 px-5 py-4 bg-slate-50 rounded-2xl border border-slate-100 focus-within:ring-2 focus-within:ring-sky-500/20 focus-within:border-sky-500/50 transition-all">
               <Users className="text-sky-500 w-6 h-6 flex-shrink-0" />
               <div className="flex flex-col text-left w-full">
@@ -151,7 +151,7 @@ export function Home() {
               </div>
             </div>
 
-            {/* Submit Button */}
+            {/* Nút tìm kiếm */}
             <button
               type="submit"
               className="md:w-16 bg-sky-500 hover:bg-sky-600 text-white rounded-2xl flex items-center justify-center gap-3 font-bold shadow-xl shadow-sky-500/30 transition-all transform active:scale-95 py-4 md:py-0"
@@ -163,7 +163,7 @@ export function Home() {
         </div>
       </section>
 
-      {/* Premium Hotels Section */}
+      {/* Phần Khách sạn cao cấp */}
       <section className="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
         <div className="text-center max-w-3xl mx-auto mb-16">
@@ -225,7 +225,7 @@ export function Home() {
         </div>
       </section>
 
-      {/* Special Offers Section */}
+      {/* Phần Khuyến mãi */}
       {vouchers.length > 0 && (
         <section className="py-20 bg-slate-50/50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -298,7 +298,7 @@ export function Home() {
         </section>
       )}
 
-      {/* Trending Section */}
+      {/* Phần Đang thịnh hành */}
       <section className="bg-white py-20 border-t border-sky-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-end mb-10">

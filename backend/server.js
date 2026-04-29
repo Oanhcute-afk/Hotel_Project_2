@@ -33,18 +33,17 @@ app.use('/api/reviews', reviewsRoutes);
 app.use('/api/manager', managerRoutes);
 app.use('/api/comments', commentsRoutes);
 
-// MongoDB connection
+// Kết nối MongoDB
 mongoose.set('bufferCommands', false);
 mongoose.connect(process.env.MONGODB_URI, {
-  serverSelectionTimeoutMS: 5000 // 5 seconds timeout
+  serverSelectionTimeoutMS: 5000 // Hết hạn sau 5 giây
 })
-  .then(() => console.log('Connected to MongoDB Atlas successfully!'))
+  .then(() => console.log('Kết nối thành công với MongoDB Atlas!'))
   .catch((err) => {
-    console.error('CRITICAL: MongoDB connection has failed!');
-    console.error('Error details:', err.message);
-    console.error('URI being used:', process.env.MONGODB_URI ? process.env.MONGODB_URI.substring(0, 25) + '...' : 'UNDEFINED');
+    console.error('LỖI NGHIÊM TRỌNG: Kết nối MongoDB thất bại!');
+    console.error('Chi tiết lỗi:', err.message);
   });
 
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`Máy chủ đang chạy tại cổng ${PORT}`);
 });

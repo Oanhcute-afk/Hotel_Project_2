@@ -6,6 +6,9 @@ import Voucher from '../models/Voucher.js';
 
 const router = express.Router();
 
+/**
+ * Lấy danh sách các điểm đến (Destinations)
+ */
 router.get('/destinations', async (req, res) => {
   try {
     const destinations = await Destination.find({});
@@ -17,10 +20,13 @@ router.get('/destinations', async (req, res) => {
     }));
     res.json(formatted);
   } catch (error) {
-    res.status(500).json({ message: 'Server Error' });
+    res.status(500).json({ message: 'Lỗi hệ thống' });
   }
 });
 
+/**
+ * Lấy danh sách toàn bộ khách sạn (Dùng cho trang Khám phá/Tìm kiếm)
+ */
 router.get('/hotels', async (req, res) => {
   try {
     const hotels = await Hotel.find({});
@@ -32,21 +38,25 @@ router.get('/hotels', async (req, res) => {
       rating: h.rating,
       reviews: h.reviews,
       stars: h.stars,
-      image: h.images && h.images.length > 0 ? h.images[0] : h.image, // Fallback for old data
+      image: h.images && h.images.length > 0 ? h.images[0] : h.image, // Ảnh bìa đầu tiên
       images: h.images || (h.image ? [h.image] : []),
       amenities: h.amenities,
       propertyType: h.propertyType
     }));
     res.json(formatted);
   } catch (error) {
-    res.status(500).json({ message: 'Server Error' });
+    res.status(500).json({ message: 'Lỗi hệ thống' });
   }
 });
 
+/**
+ * Lấy chi tiết một khách sạn theo ID
+ */
 router.get('/hotels/:id', async (req, res) => {
   try {
     const idParam = req.params.id;
     const isObjectId = idParam.length === 24;
+    // Tìm kiếm linh hoạt theo cả ID hệ thống (_id) hoặc mã chuỗi (idStr)
     const query = isObjectId ? { $or: [{ idStr: idParam }, { _id: idParam }] } : { idStr: idParam };
     
     const hotel = await Hotel.findOne(query);
@@ -67,10 +77,13 @@ router.get('/hotels/:id', async (req, res) => {
       rooms: hotel.rooms || []
     });
   } catch (error) {
-    res.status(500).json({ message: 'Server Error' });
+    res.status(500).json({ message: 'Lỗi hệ thống' });
   }
 });
 
+/**
+ * Lấy danh sách Voucher (Dùng cho trang Ưu đãi)
+ */
 router.get('/vouchers', async (req, res) => {
   try {
     const vouchers = await Voucher.find({});
@@ -87,15 +100,17 @@ router.get('/vouchers', async (req, res) => {
       expiryDate: v.expiryDate
     })));
   } catch (error) {
-    res.status(500).json({ message: 'Server Error' });
+    res.status(500).json({ message: 'Lỗi hệ thống' });
   }
 });
 
-// Mock Payment Gateway Logic simulating network behavior
+/**
+ * Giả lập cổng thanh toán (Mock Payment)
+ * Logic: Trả về thành công sau 1.5s, thất bại nếu số thẻ kết thúc bằng '000'
+ */
 const mockPaymentGateway = (cardNumber) => {
   return new Promise((resolve) => {
     setTimeout(() => {
-      // Mock logic: fail if card number ends with '000' or is fake invalid
       if (cardNumber && (cardNumber.endsWith('000') || cardNumber === '123456789')) {
         resolve({ success: false, message: 'Thẻ bị từ chối do thẻ không hợp lệ hoặc lỗi hệ thống.' });
       } else {
@@ -105,6 +120,10 @@ const mockPaymentGateway = (cardNumber) => {
   });
 };
 
+/**
+ * Tạo Đơn đặt phòng mới (Booking)
+ * Quy trình: Nhận thông tin -> Giả lập thanh toán -> Tạo hóa đơn (Invoice) -> Lưu DB
+ */
 router.post('/bookings', async (req, res) => {
   try {
     const { 
@@ -114,7 +133,7 @@ router.post('/bookings', async (req, res) => {
       paymentMethod, cardNumber 
     } = req.body;
 
-    // Simulate Payment Processing if paying via credit_card/atm
+    // Xử lý thanh toán nếu khách chọn thẻ
     if (paymentMethod === 'credit_card' || paymentMethod === 'atm') {
        const paymentResult = await mockPaymentGateway(cardNumber);
        if (!paymentResult.success) {
@@ -122,9 +141,10 @@ router.post('/bookings', async (req, res) => {
        }
     }
 
+    // Tự động tạo mã hóa đơn ngẫu nhiên
     const invoiceNumber = `INV-${Math.floor(Math.random() * 1000000).toString().padStart(6, '0')}`;
 
-    // Save booking
+    // Lưu thông tin vào Database
     const newBooking = new Booking({
       hotelId,
       firstName,
@@ -160,6 +180,9 @@ router.post('/bookings', async (req, res) => {
   }
 });
 
+/**
+ * Lấy lịch sử đặt phòng của người dùng
+ */
 router.get('/bookings/user/:userId', async (req, res) => {
   try {
     const bookings = await Booking.find({ userId: req.params.userId }).sort({ createdAt: -1 });
@@ -172,6 +195,10 @@ router.get('/bookings/user/:userId', async (req, res) => {
 
 import nodemailer from 'nodemailer';
 
+/**
+ * Gửi yêu cầu hỗ trợ (Support Contact)
+ * Sử dụng Ethereal Email (Giả lập gửi mail thực tế)
+ */
 router.post('/support', async (req, res) => {
   try {
     const { name, email, message } = req.body;
@@ -179,6 +206,7 @@ router.post('/support', async (req, res) => {
       return res.status(400).json({ success: false, message: 'Vui lòng nhập đủ thông tin.' });
     }
 
+    // Cấu hình mail giả lập
     let testAccount = await nodemailer.createTestAccount();
     let transporter = nodemailer.createTransport({
       host: "smtp.ethereal.email",
@@ -190,6 +218,7 @@ router.post('/support', async (req, res) => {
       },
     });
 
+    // Gửi mail thông báo đã nhận yêu cầu
     let info = await transporter.sendMail({
       from: '"AquaStays Support" <support@aquastays.vn>',
       to: email,
@@ -217,3 +246,4 @@ router.post('/support', async (req, res) => {
 });
 
 export default router;
+

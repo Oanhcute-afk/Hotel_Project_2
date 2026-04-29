@@ -27,7 +27,7 @@ export const About = () => {
 
   return (
     <div className="bg-[#FDFAF6] min-h-screen pb-20">
-      {/* Hero Section */}
+      {/* Phần Hero (Ảnh bìa & Giới thiệu) */}
       <div className="relative h-[60vh] bg-slate-900 overflow-hidden">
         <img
           src="https://images.unsplash.com/photo-1565503187147-6b0012bab4da?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx2aWV0bmFtJTIwYmVhdXRpZnVsJTIwYmVhY2glMjByZXNvcnR8ZW58MXx8fHwxNzc1MTQzMzUzfDA&ixlib=rb-4.1.0&q=80&w=1080"
@@ -46,7 +46,7 @@ export const About = () => {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-16">
-        {/* Story */}
+        {/* Phần Câu chuyện */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center mb-24">
           <div>
             <h2 className="text-4xl md:text-5xl font-black text-slate-800 mb-8 tracking-tight">
@@ -77,7 +77,7 @@ export const About = () => {
           </div>
         </div>
 
-        {/* Values */}
+        {/* Phần Giá trị cốt lõi */}
         <div className="text-center max-w-3xl mx-auto mb-16">
           <h2 className="text-4xl md:text-5xl font-black text-slate-800 mb-6 tracking-tight">
             Giá trị cốt lõi

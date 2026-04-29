@@ -74,12 +74,12 @@ export function Offers() {
                   className="w-full h-full object-cover group-hover:scale-110 transition duration-700"
                 />
 
-                {/* Tag Badge */}
+                {/* Nhãn loại (Tag) */}
                 <div className="absolute top-6 left-6 bg-white/90 backdrop-blur-md text-slate-900 text-xs font-black px-4 py-2 rounded-2xl flex items-center gap-2 shadow-xl border border-white/20">
                   <Tag className="w-3.5 h-3.5 text-sky-500" /> {offer.tag}
                 </div>
 
-                {/* Discount Badge */}
+                {/* Nhãn Giảm giá (Discount) */}
                 <div className="absolute bottom-6 right-6 bg-red-500 text-white px-6 py-3 rounded-[24px] shadow-2xl shadow-red-500/40 flex flex-col items-center justify-center animate-pulse border-2 border-white/30">
                   <span className="text-xs font-black uppercase tracking-widest opacity-80">Giảm</span>
                   <span className="text-2xl font-black">
