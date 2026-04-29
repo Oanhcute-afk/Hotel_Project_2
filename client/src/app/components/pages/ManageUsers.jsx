@@ -10,8 +10,7 @@ export default function ManageUsers() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 8;
+  const [visibleCount, setVisibleCount] = useState(8);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -31,12 +30,12 @@ export default function ManageUsers() {
   }, []);
 
   const filteredUsers = users.filter(u =>
-    u.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    u.email.toLowerCase().includes(searchTerm.toLowerCase())
+    (u.username?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+    (u.email?.toLowerCase() || '').includes(searchTerm.toLowerCase())
   );
 
-  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
-  const displayedUsers = filteredUsers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+  const displayedUsers = filteredUsers.slice(0, visibleCount);
+  const hasMore = visibleCount < filteredUsers.length;
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
@@ -57,7 +56,7 @@ export default function ManageUsers() {
             type="text"
             placeholder="Tìm theo tên hoặc email..."
             value={searchTerm}
-            onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
+            onChange={(e) => { setSearchTerm(e.target.value); setVisibleCount(8); }}
             className="w-full pl-12 pr-4 py-3 bg-white border border-slate-200 rounded-2xl focus:ring-4 focus:ring-sky-500/10 focus:border-sky-500 outline-none transition shadow-sm"
           />
         </div>
@@ -197,32 +196,14 @@ export default function ManageUsers() {
             </div>
           )}
 
-          {totalPages > 1 && (
-            <div className="flex justify-center items-center gap-2 p-6 border-t border-slate-100">
+          {hasMore && (
+            <div className="p-8 flex justify-center border-t border-slate-100">
               <button 
-                disabled={currentPage === 1}
-                onClick={() => setCurrentPage(p => p - 1)}
-                className="px-4 py-2 border border-slate-200 rounded-xl disabled:opacity-50 hover:bg-slate-50 transition font-medium text-sm text-slate-600"
+                onClick={() => setVisibleCount(prev => prev + 8)}
+                className="px-10 py-3.5 bg-white border border-slate-200 rounded-2xl text-sm font-black text-slate-900 hover:bg-slate-50 hover:border-sky-200 hover:text-sky-600 transition-all duration-300 shadow-sm hover:shadow-md flex items-center gap-2 group"
               >
-                Trước
-              </button>
-              <div className="flex gap-1">
-                {Array.from({ length: totalPages }).map((_, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => setCurrentPage(idx + 1)}
-                    className={`w-9 h-9 rounded-xl transition text-sm font-bold ${currentPage === idx + 1 ? 'bg-sky-500 text-white shadow-md' : 'border border-slate-200 hover:bg-slate-50 text-slate-600'}`}
-                  >
-                    {idx + 1}
-                  </button>
-                ))}
-              </div>
-              <button 
-                disabled={currentPage === totalPages}
-                onClick={() => setCurrentPage(p => p + 1)}
-                className="px-4 py-2 border border-slate-200 rounded-xl disabled:opacity-50 hover:bg-slate-50 transition font-medium text-sm text-slate-600"
-              >
-                Sau
+                Xem thêm người dùng
+                <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition" />
               </button>
             </div>
           )}

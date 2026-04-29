@@ -3,7 +3,7 @@ import { useAuth } from '../../../contexts/AuthContext';
 import { 
   Receipt, Search, Calendar, DollarSign, User, 
   Hotel, CreditCard, ChevronRight, FileText, CheckCircle, 
-  Clock, AlertTriangle
+  Clock, AlertTriangle, Trash2, X, Eye, MapPin, Ticket
 } from 'lucide-react';
 
 export default function ManageInvoices() {
@@ -11,36 +11,58 @@ export default function ManageInvoices() {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 8;
+  const [visibleCount, setVisibleCount] = useState(8);
+  const [selectedInvoice, setSelectedInvoice] = useState(null);
 
   useEffect(() => {
-    const fetchBookings = async () => {
-      try {
-        const res = await fetch('/api/manager/bookings', {
-          headers: { 'Authorization': `Bearer ${user?.token}` }
-        });
-        const data = await res.json();
-        if (data.success) setBookings(data.bookings);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchBookings();
   }, []);
+
+  const fetchBookings = async () => {
+    try {
+      const res = await fetch('/api/manager/bookings', {
+        headers: { 'Authorization': `Bearer ${user?.token}` }
+      });
+      const data = await res.json();
+      if (data.success) setBookings(data.bookings);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Bạn có chắc chắn muốn xóa hóa đơn này? Thao tác này không thể hoàn tác.')) return;
+
+    try {
+      const res = await fetch(`/api/manager/bookings/${id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${user?.token}` }
+      });
+      const data = await res.json();
+      if (data.success) {
+        setBookings(prev => prev.filter(b => b._id !== id));
+        if (selectedInvoice?._id === id) setSelectedInvoice(null);
+      } else {
+        alert(data.message || 'Lỗi khi xóa hóa đơn');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Lỗi kết nối server');
+    }
+  };
 
   const filteredInvoices = bookings.filter(b => 
     b.invoiceNumber?.toLowerCase().includes(searchTerm.toLowerCase()) || 
     `${b.firstName} ${b.lastName}`.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const totalPages = Math.ceil(filteredInvoices.length / itemsPerPage);
-  const displayedInvoices = filteredInvoices.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+  const displayedInvoices = filteredInvoices.slice(0, visibleCount);
+  const hasMore = visibleCount < filteredInvoices.length;
 
   const getStatusStyle = (status) => {
-    switch (status.toLowerCase()) {
+    switch (status?.toLowerCase()) {
       case 'paid': 
         return 'bg-emerald-50 text-emerald-600 border-emerald-100';
       case 'pending':
@@ -53,7 +75,7 @@ export default function ManageInvoices() {
   };
 
   const getStatusIcon = (status) => {
-    switch (status.toLowerCase()) {
+    switch (status?.toLowerCase()) {
       case 'paid': return <CheckCircle className="w-3.5 h-3.5" />;
       case 'pending': return <Clock className="w-3.5 h-3.5" />;
       default: return <AlertTriangle className="w-3.5 h-3.5" />;
@@ -79,7 +101,7 @@ export default function ManageInvoices() {
             type="text" 
             placeholder="Tìm theo số hóa đơn hoặc tên khách..." 
             value={searchTerm}
-            onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
+            onChange={(e) => { setSearchTerm(e.target.value); setVisibleCount(8); }}
             className="w-full pl-12 pr-4 py-3 bg-white border border-slate-200 rounded-2xl focus:ring-4 focus:ring-sky-500/10 focus:border-sky-500 outline-none transition shadow-sm"
           />
         </div>
@@ -157,7 +179,7 @@ export default function ManageInvoices() {
                     <td className="px-6 py-4">
                       <div className="space-y-1">
                         <p className="text-sm font-black text-slate-900">
-                          {b.totalPrice.toLocaleString()}₫
+                          {b.totalPrice?.toLocaleString()}₫
                         </p>
 
                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1">
@@ -166,6 +188,8 @@ export default function ManageInvoices() {
                              ? 'Thẻ tín dụng'
                              : b.paymentMethod === 'atm'
                              ? 'Thẻ ATM'
+                             : b.paymentMethod === 'qr'
+                             ? 'Mã QR'
                              : 'Tiền mặt'}
                         </p>
                       </div>
@@ -183,11 +207,24 @@ export default function ManageInvoices() {
                        </span>
                     </td>
 
-                    {/* Button */}
+                    {/* Actions */}
                     <td className="px-6 py-4 text-right">
-                       <button className="p-2 text-slate-300 hover:text-sky-500 transition opacity-0 group-hover:opacity-100">
-                         <ChevronRight className="w-6 h-6" />
-                       </button>
+                       <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition">
+                         <button 
+                           onClick={() => setSelectedInvoice(b)}
+                           className="p-2 text-slate-400 hover:text-sky-500 hover:bg-sky-50 rounded-lg transition"
+                           title="Xem chi tiết"
+                         >
+                           <Eye className="w-5 h-5" />
+                         </button>
+                         <button 
+                           onClick={() => handleDelete(b._id)}
+                           className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition"
+                           title="Xóa hóa đơn"
+                         >
+                           <Trash2 className="w-5 h-5" />
+                         </button>
+                       </div>
                     </td>
 
                   </tr>
@@ -205,35 +242,127 @@ export default function ManageInvoices() {
             </div>
           )}
 
-          {totalPages > 1 && (
-            <div className="flex justify-center items-center gap-2 p-6 border-t border-slate-100">
-              <button 
-                disabled={currentPage === 1}
-                onClick={() => setCurrentPage(p => p - 1)}
-                className="px-4 py-2 border border-slate-200 rounded-xl disabled:opacity-50 hover:bg-slate-50 transition font-medium text-sm text-slate-600"
-              >
-                Trước
-              </button>
-              <div className="flex gap-1">
-                {Array.from({ length: totalPages }).map((_, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => setCurrentPage(idx + 1)}
-                    className={`w-9 h-9 rounded-xl transition text-sm font-bold ${currentPage === idx + 1 ? 'bg-sky-500 text-white shadow-md' : 'border border-slate-200 hover:bg-slate-50 text-slate-600'}`}
-                  >
-                    {idx + 1}
-                  </button>
-                ))}
-              </div>
-              <button 
-                disabled={currentPage === totalPages}
-                onClick={() => setCurrentPage(p => p + 1)}
-                className="px-4 py-2 border border-slate-200 rounded-xl disabled:opacity-50 hover:bg-slate-50 transition font-medium text-sm text-slate-600"
-              >
-                Sau
-              </button>
+          {hasMore && (
+            <div className="p-8 flex justify-center border-t border-slate-50">
+               <button 
+                onClick={() => setVisibleCount(prev => prev + 8)}
+                className="px-10 py-3.5 bg-white border border-slate-200 rounded-2xl text-sm font-black text-slate-900 hover:bg-slate-50 hover:border-sky-200 hover:text-sky-600 transition-all duration-300 shadow-sm hover:shadow-md flex items-center gap-2 group"
+               >
+                 Xem thêm hóa đơn
+                 <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition" />
+               </button>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Detail Modal */}
+      {selectedInvoice && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="bg-white rounded-[40px] w-full max-w-2xl max-h-[90vh] overflow-hidden shadow-2xl flex flex-col relative animate-in zoom-in-95 duration-300">
+            {/* Modal Header */}
+            <div className="p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 bg-sky-100 text-sky-600 rounded-2xl flex items-center justify-center">
+                  <Receipt className="w-7 h-7" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-black text-slate-900">Chi tiết hóa đơn</h2>
+                  <p className="text-slate-500 font-medium">#{selectedInvoice.invoiceNumber}</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setSelectedInvoice(null)}
+                className="p-2 text-slate-400 hover:text-slate-900 hover:bg-white rounded-full transition shadow-sm"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="flex-grow overflow-y-auto p-8 space-y-8">
+              {/* Customer & Booking Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="space-y-4">
+                  <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                    <User className="w-4 h-4 text-sky-500" />
+                    Thông tin khách hàng
+                  </h3>
+                  <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                    <p className="font-bold text-slate-900">{selectedInvoice.firstName} {selectedInvoice.lastName}</p>
+                    <p className="text-sm text-slate-600">{selectedInvoice.email}</p>
+                    <p className="text-sm text-slate-600">{selectedInvoice.phone}</p>
+                    <p className="text-sm text-slate-600 mt-2 font-medium">CCCD: {selectedInvoice.cccd || 'N/A'}</p>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                    <Hotel className="w-4 h-4 text-sky-500" />
+                    Thông tin đặt phòng
+                  </h3>
+                  <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                    <p className="font-bold text-slate-900">{selectedInvoice.hotelId}</p>
+                    <div className="flex items-center gap-2 text-sm text-slate-600 mt-1">
+                      <Calendar className="w-4 h-4 text-slate-400" />
+                      {new Date(selectedInvoice.checkIn).toLocaleDateString()} - {new Date(selectedInvoice.checkOut).toLocaleDateString()}
+                    </div>
+                    <p className="text-sm text-slate-600 mt-2 font-medium">Khách: {selectedInvoice.guests} người</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Payment Summary */}
+              <div className="space-y-4">
+                <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                  <DollarSign className="w-4 h-4 text-sky-500" />
+                  Chi tiết thanh toán
+                </h3>
+                <div className="bg-slate-900 text-white p-6 rounded-3xl space-y-4">
+                  <div className="flex justify-between text-slate-400 text-sm">
+                    <span>Tạm tính</span>
+                    <span>{selectedInvoice.subTotal?.toLocaleString()}₫</span>
+                  </div>
+                  {selectedInvoice.discountAmount > 0 && (
+                    <div className="flex justify-between text-emerald-400 text-sm">
+                      <span className="flex items-center gap-1"><Ticket className="w-3.5 h-3.5"/> Giảm giá</span>
+                      <span>-{selectedInvoice.discountAmount?.toLocaleString()}₫</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between text-slate-400 text-sm">
+                    <span>Thuế & phí (10%)</span>
+                    <span>{selectedInvoice.taxAmount?.toLocaleString()}₫</span>
+                  </div>
+                  <div className="h-px bg-white/10 my-2"></div>
+                  <div className="flex justify-between items-center">
+                    <span className="font-bold">Tổng cộng</span>
+                    <span className="text-2xl font-black text-sky-400">{selectedInvoice.totalPrice?.toLocaleString()}₫</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-[10px] text-slate-400 uppercase tracking-widest pt-2">
+                    <CreditCard className="w-3 h-3" />
+                    Thanh toán qua: {selectedInvoice.paymentMethod}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-8 border-t border-slate-100 flex gap-4 bg-slate-50/50">
+               <button 
+                onClick={() => setSelectedInvoice(null)}
+                className="flex-1 py-4 bg-white border border-slate-200 text-slate-700 font-bold rounded-2xl hover:bg-slate-50 transition"
+               >
+                 Đóng
+               </button>
+               <button 
+                onClick={() => handleDelete(selectedInvoice._id)}
+                className="flex-1 py-4 bg-red-500 text-white font-bold rounded-2xl hover:bg-red-600 transition flex items-center justify-center gap-2"
+               >
+                 <Trash2 className="w-5 h-5" />
+                 Xóa hóa đơn
+               </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

@@ -35,10 +35,10 @@ export const About = () => {
           className="absolute inset-0 w-full h-full object-cover opacity-60"
         />
         <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4">
-          <h1 className="text-5xl md:text-6xl font-extrabold text-white mb-6 tracking-tight">
+          <h1 className="text-6xl md:text-8xl font-black text-white mb-8 tracking-tighter drop-shadow-2xl animate-in fade-in slide-in-from-top duration-1000">
             Về AquaStays
           </h1>
-          <p className="text-xl text-sky-100 max-w-2xl font-light leading-relaxed">
+          <p className="text-xl md:text-2xl text-sky-50 font-bold max-w-3xl mx-auto leading-relaxed drop-shadow-lg text-center">
             Chúng tôi sinh ra với sứ mệnh kết nối những trái tim yêu biển với
             những khu nghỉ dưỡng tuyệt vời nhất trên khắp Việt Nam.
           </p>
@@ -49,7 +49,7 @@ export const About = () => {
         {/* Story */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center mb-24">
           <div>
-            <h2 className="text-3xl font-bold text-slate-800 mb-6">
+            <h2 className="text-4xl md:text-5xl font-black text-slate-800 mb-8 tracking-tight">
               Câu chuyện của chúng tôi
             </h2>
             <div className="space-y-4 text-slate-600 leading-relaxed text-lg">
@@ -78,11 +78,11 @@ export const About = () => {
         </div>
 
         {/* Values */}
-        <div className="text-center mb-16">
-          <h2 className="text-3xl font-bold text-slate-800 mb-4">
+        <div className="text-center max-w-3xl mx-auto mb-16">
+          <h2 className="text-4xl md:text-5xl font-black text-slate-800 mb-6 tracking-tight">
             Giá trị cốt lõi
           </h2>
-          <p className="text-slate-600 max-w-2xl mx-auto">
+          <p className="text-slate-600 max-w-2xl mx-auto text-xl font-medium">
             Kim chỉ nam cho mọi hoạt động của AquaStays.
           </p>
         </div>
@@ -91,15 +91,15 @@ export const About = () => {
           {values.map((v, i) => (
             <div
               key={i}
-              className="bg-white p-8 rounded-3xl border border-sky-100 shadow-sm hover:shadow-xl hover:shadow-sky-50 transition duration-300 text-center group"
+              className="bg-white p-10 rounded-[40px] border border-sky-100 shadow-sm hover:shadow-2xl hover:shadow-sky-100/50 transition-all duration-500 text-center group hover:-translate-y-2"
             >
-              <div className="w-16 h-16 bg-sky-50 text-sky-500 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:scale-110 group-hover:bg-sky-500 group-hover:text-white transition duration-300">
+              <div className="w-20 h-20 bg-sky-50 text-sky-500 rounded-2xl flex items-center justify-center mx-auto mb-8 group-hover:scale-110 group-hover:bg-sky-500 group-hover:text-white transition-all duration-500 shadow-sm group-hover:shadow-lg group-hover:shadow-sky-200">
                 {v.icon}
               </div>
-              <h3 className="text-xl font-bold text-slate-800 mb-3">
+              <h3 className="text-2xl font-black text-slate-800 mb-4 group-hover:text-sky-600 transition-colors">
                 {v.title}
               </h3>
-              <p className="text-slate-500">{v.desc}</p>
+              <p className="text-slate-500 font-bold leading-relaxed">{v.desc}</p>
             </div>
           ))}
         </div>
@@ -107,4 +107,4 @@ export const About = () => {
     </div>
   );
 };
-
+

@@ -111,7 +111,8 @@ export function Checkout() {
         let d = 0;
 
         if (v.type === "percent") {
-          d = roomTotal * v.value;
+          const discountVal = v.value <= 1 ? v.value : v.value / 100;
+          d = roomTotal * discountVal;
           if (v.maxDiscount && d > v.maxDiscount)
             d = v.maxDiscount;
         } else {
@@ -166,8 +167,8 @@ export function Checkout() {
 
   if (selectedVoucher) {
     if (selectedVoucher.type === "percent") {
-      discountApplied =
-        subTotal * selectedVoucher.value;
+      const discountVal = selectedVoucher.value <= 1 ? selectedVoucher.value : selectedVoucher.value / 100;
+      discountApplied = subTotal * discountVal;
 
       if (
         selectedVoucher.maxDiscount &&
@@ -547,7 +548,7 @@ export function Checkout() {
               <option value="">Không sử dụng</option>
               {availableVouchers.map(v => (
                 <option key={v.code} value={v.code}>
-                  {v.code} - Giảm {v.type === "percent" ? `${v.value * 100}%` : `${v.value.toLocaleString()}₫`}
+                  {v.code} - Giảm {v.type === "percent" ? `${v.value <= 1 ? v.value * 100 : v.value}%` : `${v.value.toLocaleString()}₫`}
                 </option>
               ))}
             </select>

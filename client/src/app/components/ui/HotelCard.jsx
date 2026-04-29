@@ -28,6 +28,10 @@ export function HotelCard({ hotel }) {
           alt={hotel.name} 
           className="w-full h-full object-cover rounded-lg"
         />
+        <div className="absolute top-2 left-2 bg-white/90 backdrop-blur-md px-2 py-1 rounded-lg text-[10px] font-bold text-slate-800 flex items-center gap-1 shadow-sm border border-white/50">
+          <Star className="w-2.5 h-2.5 fill-amber-400 text-amber-400" />
+          <span>{hotel.stars || 5} sao</span>
+        </div>
         <button className="absolute top-2 right-2 p-2 bg-white rounded-full shadow-sm hover:bg-slate-100 transition">
           <Heart className="w-4 h-4 text-slate-500" />
         </button>
@@ -45,10 +49,7 @@ export function HotelCard({ hotel }) {
               </h3>
               <div className="flex items-center">
                 {[...Array(hotel.stars || 0)].map((_, i) => (
-                  <Star 
-                    key={i} 
-                    className="w-3 h-3 fill-amber-400 text-amber-400" 
-                  />
+                  <Star key={i} className="w-3 h-3 fill-amber-400 text-amber-400" />
                 ))}
               </div>
             </div>
@@ -75,22 +76,16 @@ export function HotelCard({ hotel }) {
               </p>
             </div>
             
-            <p className="text-xs font-bold text-red-600">Chúng tôi chỉ còn 1 phòng ở giá này!</p>
+            <p className="text-xs font-bold text-red-600">Giá này chỉ có ở AquaStays hãy nhanh tay</p>
           </div>
 
-          {/* Right rating & price side */}
+          {/* Right rating info */}
           <div className="flex flex-col items-end min-w-[140px] text-right">
-            {/* Rating row */}
-            <div className="flex items-center gap-2 mb-1">
-              <div className="flex flex-col">
-                <span className="font-bold text-slate-800 text-sm">{ratingText}</span>
-                <span className="text-xs text-slate-500">{hotel.reviews || 0} đánh giá</span>
-              </div>
-              <div className="bg-sky-700 text-white font-bold p-1.5 rounded-t-lg rounded-br-lg rounded-bl-sm text-sm min-w-[32px] text-center">
-                {hotel.rating?.toFixed(1) || '10'}
-              </div>
+            <div className="flex flex-col mb-4">
+              <span className="font-bold text-slate-800 text-sm">{ratingText}</span>
+              <span className="text-xs text-slate-500">{hotel.reviews || 0} đánh giá</span>
             </div>
-            <span className="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-1 rounded mb-4 mt-2">
+            <span className="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-1 rounded">
               Mới trên Khách sạn
             </span>
           </div>

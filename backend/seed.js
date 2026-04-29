@@ -20,8 +20,8 @@ const HOTELS = [
     amenities: ["Bãi biển riêng", "Hồ bơi", "Spa", "Wi-Fi miễn phí", "Bữa sáng miễn phí"], 
     propertyType: "Resort",
     rooms: [
-      { idStr: 'r-1-1', name: 'Phòng Đôi Tiêu Chuẩn', capacity: { adults: 2, children: 1 }, size: 25, bedType: '1 giường đôi lớn', price: 2500000, count: 5, facilities: ["Wi-Fi miễn phí", "Điều hòa", "Minibar"] },
-      { idStr: 'r-1-2', name: 'Phòng Gia Đình View Biển', capacity: { adults: 4, children: 2 }, size: 45, bedType: '2 giường đôi lớn', price: 4500000, count: 2, facilities: ["Wi-Fi miễn phí", "Ban công", "Bồn tắm"] }
+      { idStr: 'r-1-1', name: 'Phòng Đôi Tiêu Chuẩn', capacity: { adults: 2, children: 1 }, size: 25, bedType: '1 giường đôi lớn', price: 2500000, count: 5 },
+      { idStr: 'r-1-2', name: 'Phòng Gia Đình View Biển', capacity: { adults: 4, children: 2 }, size: 45, bedType: '2 giường đôi lớn', price: 4500000, count: 2 }
     ]
   },
   { 

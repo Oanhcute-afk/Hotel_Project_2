@@ -8,6 +8,7 @@ const hotelSchema = new mongoose.Schema({
   rating: { type: Number, required: true },
   reviews: { type: Number, required: true },
   stars: { type: Number, required: true },
+  image: { type: String }, // Fallback for old data
   images: [{ type: String }], // Updated to support 3 images as requested
   amenities: [{ type: String }],
   propertyType: { type: String, required: true },
@@ -23,7 +24,6 @@ const hotelSchema = new mongoose.Schema({
     },
     size: { type: Number, default: 20 },
     bedType: { type: String, default: '1 queen bed' },
-    facilities: [{ type: String }],
     count: { type: Number, default: 1 }
   }],
   managerId: { type: String, default: 'admin' } // linked to User model _id or 'admin' for system hotels

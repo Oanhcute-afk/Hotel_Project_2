@@ -289,11 +289,7 @@ export function HotelDetail() {
                         <span className="text-xs border border-slate-300 px-1 py-0.5 rounded flex items-center gap-1"><Check className="w-3 h-3 text-slate-500" /> {room.size} m²</span>
                       </div>
 
-                      <div className="grid grid-cols-2 gap-1 text-[11px] text-green-700 font-medium">
-                        {room.facilities?.map(f => (
-                           <span key={f} className="flex gap-1 items-start"><Check className="w-3 h-3 mt-0.5" /> {f}</span>
-                        ))}
-                      </div>
+
                     </td>
                     
                     <td className="p-4 align-top border-r border-slate-300 text-center">

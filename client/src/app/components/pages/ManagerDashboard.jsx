@@ -26,7 +26,7 @@ export default function ManagerDashboard() {
 
     const fetchStats = async () => {
       try {
-        const res = await fetch(`http://localhost:5000/api/manager/stats?range=${timeRange}`, {
+        const res = await fetch(`/api/manager/stats?range=${timeRange}`, {
           headers: {
             'Authorization': `Bearer ${user.token}`
           }
@@ -175,9 +175,9 @@ export default function ManagerDashboard() {
               </h3>
 
               <div className="space-y-3">
-                <QuickLink to="/manager/hotels" label="Quản lý khách sạn" count="12" />
+                <QuickLink to="/manager/hotels" label="Quản lý khách sạn" count={stats?.totalHotels?.toString() || '0'} />
                 <QuickLink to="/manager/bookings" label="Danh sách đặt phòng" count={stats?.totalBookings?.toString() || '0'} />
-                <QuickLink to="/manager/reviews" label="Đánh giá từ khách" count="48" />
+                <QuickLink to="/manager/reviews" label="Đánh giá từ khách" count={stats?.totalReviews?.toString() || '0'} />
               </div>
             </div>
 

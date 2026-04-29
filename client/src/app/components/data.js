@@ -3,7 +3,7 @@ export const DESTINATIONS = [
     id: "da-nang",
     name: "Đà Nẵng",
     properties: 450,
-    image: "https://images.unsplash.com/photo-1559592442-7e182c8c6f5d?auto=format&fit=crop&q=80&w=800"
+    image: "https://th.bing.com/th/id/OIP.aPxMafeqf6w-zEoSMNY1SwHaE7?r=0&o=7rm=3&rs=1&pid=ImgDetMain&o=7&rm=3"
   },
   {
     id: "phu-quoc",

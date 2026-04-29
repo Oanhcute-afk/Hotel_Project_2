@@ -39,16 +39,16 @@ export function Discover() {
   return (
     <div className="bg-[#FDFAF6] min-h-screen py-10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
+
         {/* Header Hero */}
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <div className="bg-sky-100 text-sky-800 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
-            <Compass className="w-8 h-8" />
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-sky-50 mb-4 mx-auto">
+            <Compass className="w-6 h-6 text-sky-600" />
           </div>
-          <h1 className="text-4xl font-extrabold text-slate-800 mb-4">
+          <h1 className="text-4xl font-black text-slate-800 mb-4 tracking-tight">
             Khám phá vùng đất mới
           </h1>
-          <p className="text-slate-600 text-lg">
+          <p className="text-slate-500 text-lg max-w-2xl mx-auto leading-relaxed">
             Cùng AquaStays tìm hiểu về những điểm đến ven biển xinh đẹp và tận hưởng kỳ nghỉ trọn vẹn.
           </p>
         </div>

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../../contexts/AuthContext';
 import { 
   Ticket, Plus, Edit2, Trash2, Search, 
-  Percent, DollarSign, Calendar, X, Save, AlertCircle, Image as ImageIcon
+  Percent, DollarSign, Calendar, X, Save, AlertCircle, Image as ImageIcon, ChevronRight
 } from 'lucide-react';
 
 export default function ManageVouchers() {
@@ -28,8 +28,7 @@ export default function ManageVouchers() {
   const [previewUrl, setPreviewUrl] = useState(null);
 
   const [searchTerm, setSearchTerm] = useState('');
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 6;
+  const [visibleCount, setVisibleCount] = useState(6);
 
   const fetchVouchers = async () => {
     if (!user?.token) return;
@@ -56,14 +55,15 @@ export default function ManageVouchers() {
     (v.code || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
     (v.label || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
-  const totalPages = Math.ceil(filteredVouchers.length / itemsPerPage);
-  const displayedVouchers = filteredVouchers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+  const displayedVouchers = filteredVouchers.slice(0, visibleCount);
+  const hasMore = visibleCount < filteredVouchers.length;
 
   const handleFileChange = (e) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       setSelectedFile(file);
       setPreviewUrl(URL.createObjectURL(file));
+      setFormData(prev => ({ ...prev, image: '' })); // Clear URL when file is selected
     }
   };
 
@@ -155,7 +155,7 @@ export default function ManageVouchers() {
                 type="text" 
                 placeholder="Tìm kiếm voucher..." 
                 value={searchTerm}
-                onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
+                onChange={(e) => { setSearchTerm(e.target.value); setVisibleCount(6); }}
                 className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500" 
              />
           </div>
@@ -249,33 +249,15 @@ export default function ManageVouchers() {
             )}
           </div>
           
-          {totalPages > 1 && (
-            <div className="flex justify-center items-center gap-2 pt-6">
-              <button 
-                disabled={currentPage === 1}
-                onClick={() => setCurrentPage(p => p - 1)}
-                className="px-4 py-2 border border-slate-200 rounded-xl disabled:opacity-50 hover:bg-slate-50 transition font-medium"
-              >
-                Trước
-              </button>
-              <div className="flex gap-1">
-                {Array.from({ length: totalPages }).map((_, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => setCurrentPage(idx + 1)}
-                    className={`w-10 h-10 rounded-xl transition font-bold ${currentPage === idx + 1 ? 'bg-sky-500 text-white shadow-md' : 'border border-slate-200 hover:bg-slate-50 text-slate-600'}`}
-                  >
-                    {idx + 1}
-                  </button>
-                ))}
-              </div>
-              <button 
-                disabled={currentPage === totalPages}
-                onClick={() => setCurrentPage(p => p + 1)}
-                className="px-4 py-2 border border-slate-200 rounded-xl disabled:opacity-50 hover:bg-slate-50 transition font-medium"
-              >
-                Sau
-              </button>
+          {hasMore && (
+            <div className="flex justify-center pt-8">
+               <button 
+                onClick={() => setVisibleCount(prev => prev + 6)}
+                className="px-10 py-3.5 bg-white border border-slate-200 rounded-2xl text-sm font-black text-slate-900 hover:bg-slate-50 hover:border-sky-200 hover:text-sky-600 transition-all duration-300 shadow-sm hover:shadow-md flex items-center gap-2 group"
+               >
+                 Xem thêm mã giảm giá
+                 <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition" />
+               </button>
             </div>
           )}
         </>
@@ -333,27 +315,43 @@ export default function ManageVouchers() {
 
                 <div className="pt-2">
                   <label className="block text-sm font-bold text-slate-700 mb-3">Hình ảnh ưu đãi</label>
-                  <div className="flex items-center gap-4">
-                    <div 
-                      className="flex-grow border-2 border-dashed border-slate-200 rounded-2xl p-6 flex flex-col items-center justify-center bg-slate-50 hover:bg-slate-100 transition cursor-pointer relative group"
-                      onClick={() => document.getElementById('voucher-image-upload')?.click()}
-                    >
-                      <ImageIcon className="w-8 h-8 text-slate-300 mb-1 group-hover:text-sky-400 transition" />
-                      <p className="text-xs text-slate-500 font-bold">Tải ảnh lên</p>
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-4">
+                      <div 
+                        className="flex-grow border-2 border-dashed border-slate-200 rounded-2xl p-6 flex flex-col items-center justify-center bg-slate-50 hover:bg-slate-100 transition cursor-pointer relative group"
+                        onClick={() => document.getElementById('voucher-image-upload')?.click()}
+                      >
+                        <ImageIcon className="w-8 h-8 text-slate-300 mb-1 group-hover:text-sky-400 transition" />
+                        <p className="text-xs text-slate-500 font-bold">Tải ảnh lên</p>
+                        <input 
+                          id="voucher-image-upload"
+                          type="file" 
+                          accept="image/*"
+                          className="hidden"
+                          onChange={handleFileChange}
+                        />
+                      </div>
+                      
+                      {(previewUrl || formData.image) && (
+                        <div className="w-24 h-24 rounded-2xl overflow-hidden border-2 border-white shadow-xl shrink-0">
+                          <img src={previewUrl || formData.image} alt="Preview" className="w-full h-full object-cover" />
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="relative">
                       <input 
-                        id="voucher-image-upload"
-                        type="file" 
-                        accept="image/*"
-                        className="hidden"
-                        onChange={handleFileChange}
+                        type="text" 
+                        value={formData.image}
+                        onChange={(e) => {
+                          setFormData({...formData, image: e.target.value});
+                          setSelectedFile(null); // Clear file when URL is typed
+                          setPreviewUrl(null);
+                        }}
+                        className="w-full px-5 py-3 border border-slate-200 rounded-2xl outline-none focus:ring-4 focus:ring-sky-500/10 focus:border-sky-500 text-xs font-medium" 
+                        placeholder="Hoặc dán URL ảnh tại đây..."
                       />
                     </div>
-                    
-                    {(previewUrl || formData.image) && (
-                      <div className="w-24 h-24 rounded-2xl overflow-hidden border-2 border-white shadow-xl shrink-0">
-                        <img src={previewUrl || formData.image} alt="Preview" className="w-full h-full object-cover" />
-                      </div>
-                    )}
                   </div>
                 </div>
               </div>
