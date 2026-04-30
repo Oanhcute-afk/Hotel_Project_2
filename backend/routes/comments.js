@@ -5,7 +5,7 @@ import { protect } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-// GET all comments for a specific hotel, with nested replies
+// Lấy tất cả bình luận cho một khách sạn cụ thể, bao gồm cả các phản hồi lồng nhau
 router.get('/:hotelId', async (req, res) => {
   try {
     const comments = await Comment.find({ hotelId: req.params.hotelId })
@@ -18,13 +18,13 @@ router.get('/:hotelId', async (req, res) => {
   }
 });
 
-// POST a new comment or reply
+// Đăng một bình luận hoặc phản hồi mới
 router.post('/', protect, async (req, res) => {
   try {
     const { hotelId, content, rating, parentId } = req.body;
 
-    // Check if it's a root comment (no parentId)
-    // If it's a root comment, check if user has paid bookings for this hotel
+    // Kiểm tra xem đó có phải là bình luận gốc không (không có parentId)
+    // Nếu là bình luận gốc, kiểm tra xem người dùng đã thanh toán đơn đặt phòng cho khách sạn này chưa
     if (!parentId) {
       const hasBooked = await Booking.findOne({ 
         userId: req.user._id, 
@@ -53,7 +53,7 @@ router.post('/', protect, async (req, res) => {
   }
 });
 
-// UPDATE a comment
+// Cập nhật bình luận
 router.put('/:id', protect, async (req, res) => {
   try {
     const comment = await Comment.findById(req.params.id);
@@ -76,7 +76,7 @@ router.put('/:id', protect, async (req, res) => {
   }
 });
 
-// DELETE a comment
+// Xóa bình luận
 router.delete('/:id', protect, async (req, res) => {
   try {
     const comment = await Comment.findById(req.params.id);
@@ -86,7 +86,7 @@ router.delete('/:id', protect, async (req, res) => {
       return res.status(403).json({ success: false, message: 'Không có quyền xóa' });
     }
 
-    // Also delete all replies to this comment
+    // Đồng thời xóa tất cả các phản hồi của bình luận này
     if (!comment.parentId) {
       await Comment.deleteMany({ parentId: comment._id });
     }

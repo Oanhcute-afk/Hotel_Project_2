@@ -63,7 +63,7 @@ export default function ManageVouchers() {
       const file = e.target.files[0];
       setSelectedFile(file);
       setPreviewUrl(URL.createObjectURL(file));
-      setFormData(prev => ({ ...prev, image: '' })); // Clear URL when file is selected
+      setFormData(prev => ({ ...prev, image: '' })); // Xóa URL khi file được chọn
     }
   };
 
@@ -263,7 +263,7 @@ export default function ManageVouchers() {
         </>
       )}
 
-      {/* Modal */}
+      {/* Hộp thoại (Modal) */}
       {isModalOpen && (
         <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md" onClick={() => setIsModalOpen(false)}></div>
@@ -345,7 +345,7 @@ export default function ManageVouchers() {
                         value={formData.image}
                         onChange={(e) => {
                           setFormData({...formData, image: e.target.value});
-                          setSelectedFile(null); // Clear file when URL is typed
+                          setSelectedFile(null); // Xóa file khi URL được nhập trực tiếp
                           setPreviewUrl(null);
                         }}
                         className="w-full px-5 py-3 border border-slate-200 rounded-2xl outline-none focus:ring-4 focus:ring-sky-500/10 focus:border-sky-500 text-xs font-medium" 

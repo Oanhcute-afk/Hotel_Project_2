@@ -11,7 +11,7 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Middleware
+// Các Middleware
 app.use(cors());
 app.use(express.json());
 
@@ -19,7 +19,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Routes
+// Các Tuyến đường (Routes)
 import authRoutes from './routes/auth.js';
 import usersRoutes from './routes/users.js';
 import reviewsRoutes from './routes/reviews.js';

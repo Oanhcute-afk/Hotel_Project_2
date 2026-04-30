@@ -10,7 +10,7 @@ import { useNavigate } from 'react-router';
 import { AMENITIES, PROPERTY_TYPES } from '../data';
 
 /**
- * COMPONENT: Manage Hotels
+ * COMPONENT: Quản lý khách sạn
  * Logic: Cho phép Manager/Admin quản lý danh sách khách sạn, thêm mới, sửa và xóa.
  * Hỗ trợ upload nhiều ảnh và quản lý chi tiết từng loại phòng.
  */

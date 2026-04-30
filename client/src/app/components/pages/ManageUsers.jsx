@@ -85,7 +85,7 @@ export default function ManageUsers() {
                 {displayedUsers.map(u => (
                   <tr key={u._id} className="hover:bg-slate-50/50 transition group">
                     
-                    {/* User */}
+                    {/* Người dùng */}
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-2xl overflow-hidden bg-sky-100 flex-shrink-0">
@@ -113,7 +113,7 @@ export default function ManageUsers() {
                       </div>
                     </td>
 
-                    {/* Contact */}
+                    {/* Thông tin liên hệ */}
                     <td className="px-6 py-4">
                       <div className="space-y-1">
                         <div className="flex items-center gap-1.5 text-sm text-slate-600">
@@ -130,7 +130,7 @@ export default function ManageUsers() {
                       </div>
                     </td>
 
-                    {/* Address */}
+                    {/* Địa chỉ */}
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2 text-sm text-slate-600 max-w-[200px]">
                         <MapPin className="w-4 h-4 text-slate-300 shrink-0" />
@@ -140,7 +140,7 @@ export default function ManageUsers() {
                       </div>
                     </td>
 
-                    {/* Activity */}
+                    {/* Hoạt động */}
                     <td className="px-6 py-4">
                       <div className="space-y-1">
                         <div className="flex items-center gap-2 text-xs font-bold text-slate-600">
@@ -160,7 +160,7 @@ export default function ManageUsers() {
                       </div>
                     </td>
 
-                    {/* Stats */}
+                    {/* Thống kê */}
                     <td className="px-6 py-4">
                       <div className="flex flex-col gap-1">
                         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-600 text-[10px] font-black uppercase tracking-wider w-fit">
@@ -174,7 +174,7 @@ export default function ManageUsers() {
                       </div>
                     </td>
 
-                    {/* Action */}
+                    {/* Hành động */}
                     <td className="px-6 py-4 text-right">
                       <button className="p-2 text-slate-300 hover:text-sky-500 transition opacity-0 group-hover:opacity-100">
                         <ChevronRight className="w-6 h-6" />

@@ -17,22 +17,22 @@ const generateToken = (user) => {
     username: user.username,
     role: user.role || 'customer'
   };
-  // use a secret from process.env, fallback to 'dev-secret-key' for now
+  // Sử dụng khóa bí mật từ process.env, nếu không có thì mặc định là 'dev-secret-key'
   return jwt.sign(payload, process.env.JWT_SECRET || 'dev-secret-key', { expiresIn: '7d' });
 };
 
-// Register
+// Đăng ký
 router.post('/register', async (req, res) => {
   try {
     const { email, password, username, dob, citizenId, phone, address } = req.body;
 
-    // Check if user already exists
+    // Kiểm tra xem người dùng đã tồn tại chưa
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ message: 'Email này đã được sử dụng.' });
     }
 
-    // Create user with random avatar
+    // Tạo người dùng mới với ảnh đại diện ngẫu nhiên
     const user = new User({
       email,
       password,
@@ -46,7 +46,7 @@ router.post('/register', async (req, res) => {
 
     await user.save();
 
-    // Generate token
+    // Tạo mã token
     const token = generateToken(user);
     res.status(201).json({
       success: true,
@@ -67,16 +67,16 @@ router.post('/register', async (req, res) => {
   }
 });
 
-// Login
+// Đăng nhập
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Check for Special Admin Credentials
+    // Kiểm tra thông tin đăng nhập Admin đặc biệt
     if ((email === 'TranOanh123@admin.com') && password === 'TranOanh123') {
       let adminUser = await User.findOne({ email: 'TranOanh123@admin.com' }); // or any designated email
       if (!adminUser) {
-        // Create the admin user if doesn't exist
+        // Tạo tài khoản admin nếu chưa tồn tại
         adminUser = new User({
           email: 'TranOanh123@admin.com',
           username: 'TranOanh Admin',
@@ -143,14 +143,14 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// Google Login sync
+// Đồng bộ đăng nhập Google
 router.post('/google', async (req, res) => {
   try {
     const { email, username, avatar, firebaseUid } = req.body;
     let user = await User.findOne({ email });
 
     if (!user) {
-      // Register seamlessly 
+      // Đăng ký tự động
       user = new User({
         email,
         username,
@@ -159,7 +159,7 @@ router.post('/google', async (req, res) => {
       });
       await user.save();
     } else {
-      // Update firebase uid if not set
+      // Cập nhật Firebase UID nếu chưa có
       if (!user.firebaseUid && firebaseUid) {
         user.firebaseUid = firebaseUid;
         await user.save();

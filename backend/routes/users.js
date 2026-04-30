@@ -6,7 +6,7 @@ import Hotel from '../models/Hotel.js';
 
 const router = express.Router();
 
-// Update user profile
+// Cập nhật hồ sơ người dùng
 router.put('/profile/:id', protect, async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
@@ -41,7 +41,7 @@ router.put('/profile/:id', protect, async (req, res) => {
   }
 });
 
-// Toggle favorite hotel
+// Thêm/Xóa khách sạn yêu thích
 router.post('/favorites/toggle', protect, async (req, res) => {
   try {
     const { hotelId } = req.body;
@@ -50,7 +50,7 @@ router.post('/favorites/toggle', protect, async (req, res) => {
     const user = await User.findById(req.user._id);
     if (!user) return res.status(404).json({ message: 'Không tìm thấy người dùng' });
 
-    // Ensure favorites array exists
+    // Đảm bảo mảng favorites tồn tại
     if (!user.favorites) user.favorites = [];
 
     const index = user.favorites.indexOf(hotelId);
@@ -77,7 +77,7 @@ router.post('/favorites/toggle', protect, async (req, res) => {
   }
 });
 
-// Get user favorite hotels
+// Lấy danh sách khách sạn yêu thích của người dùng
 router.get('/favorites', protect, async (req, res) => {
   try {
     const user = await User.findById(req.user._id);
@@ -87,7 +87,7 @@ router.get('/favorites', protect, async (req, res) => {
       return res.json({ success: true, hotels: [] });
     }
 
-    // Fetch hotel data for the favorited IDs
+    // Lấy thông tin khách sạn từ các ID trong danh sách yêu thích
     const hotels = await Hotel.find({ idStr: { $in: user.favorites } });
     
     const formatted = hotels.map(h => ({
