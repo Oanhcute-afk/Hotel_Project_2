@@ -16,12 +16,14 @@ export function AuthModal() {
   const [address, setAddress] = useState("");
   const [error, setError] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
+  const [fieldErrors, setFieldErrors] = useState({});
 
   useEffect(() => {
     if (authModalMode) {
       setIsLogin(authModalMode === 'login');
       setError("");
       setSuccessMsg("");
+      setFieldErrors({});
     }
   }, [authModalMode]);
 
@@ -31,6 +33,23 @@ export function AuthModal() {
     e.preventDefault();
     setError("");
     setSuccessMsg("");
+    setFieldErrors({});
+
+    if (!isLogin) {
+      const newFieldErrors = {};
+      if (!/^\d{10}$/.test(phone)) {
+        newFieldErrors.phone = "Số điện thoại phải gồm 10 chữ số";
+      }
+      if (!/^\d{11}$/.test(citizenId)) {
+        newFieldErrors.citizenId = "CCCD phải gồm 11 chữ số";
+      }
+
+      if (Object.keys(newFieldErrors).length > 0) {
+        setFieldErrors(newFieldErrors);
+        return;
+      }
+    }
+
     try {
       if (isLogin) {
         await loginWithEmail(email, password);
@@ -95,31 +114,45 @@ export function AuthModal() {
                 />
 
                 <div className="flex gap-2">
-                  <input 
-                    type="date" 
-                    required 
-                    value={dob} 
-                    onChange={(e) => setDob(e.target.value)} 
-                    className={inputClass} 
-                  />
-                  <input 
-                    type="tel" 
-                    required 
-                    value={phone} 
-                    onChange={(e) => setPhone(e.target.value)} 
-                    placeholder="Số điện thoại" 
-                    className={inputClass} 
-                  />
+                  <div className="flex-1">
+                    <input 
+                      type="date" 
+                      required 
+                      value={dob} 
+                      onChange={(e) => setDob(e.target.value)} 
+                      className={inputClass} 
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <input 
+                      type="tel" 
+                      required 
+                      value={phone} 
+                      onChange={(e) => {
+                        setPhone(e.target.value);
+                        if (fieldErrors.phone) setFieldErrors({ ...fieldErrors, phone: null });
+                      }} 
+                      placeholder="Số điện thoại" 
+                      className={`${inputClass} ${fieldErrors.phone ? 'border-red-500 focus:ring-red-500/50' : ''}`} 
+                    />
+                    {fieldErrors.phone && <div className="text-red-500 text-xs mt-1 pl-1">{fieldErrors.phone}</div>}
+                  </div>
                 </div>
 
-                <input 
-                  type="text" 
-                  required 
-                  value={citizenId} 
-                  onChange={(e) => setCitizenId(e.target.value)} 
-                  placeholder="Số căn cước công dân (CCCD)" 
-                  className={inputClass} 
-                />
+                <div>
+                  <input 
+                    type="text" 
+                    required 
+                    value={citizenId} 
+                    onChange={(e) => {
+                      setCitizenId(e.target.value);
+                      if (fieldErrors.citizenId) setFieldErrors({ ...fieldErrors, citizenId: null });
+                    }} 
+                    placeholder="Số căn cước công dân (CCCD)" 
+                    className={`${inputClass} ${fieldErrors.citizenId ? 'border-red-500 focus:ring-red-500/50' : ''}`} 
+                  />
+                  {fieldErrors.citizenId && <div className="text-red-500 text-xs mt-1 pl-1">{fieldErrors.citizenId}</div>}
+                </div>
 
                 <input 
                   type="text" 
