@@ -84,9 +84,7 @@ export function Home() {
             Tìm kỳ nghỉ ven biển <br />
             <span className="text-sky-300">trong mơ của bạn</span>
           </h1>
-          <p className="text-lg md:text-2xl text-sky-50/90 mb-12 font-medium max-w-3xl mx-auto drop-shadow-lg leading-relaxed">
-            Khám phá hàng ngàn resort và khách sạn cao cấp dọc bờ biển xanh mát.
-          </p>
+
 
           {/* Thanh tìm kiếm */}
           <form
@@ -166,12 +164,14 @@ export function Home() {
       {/* Phần Khách sạn cao cấp */}
       <section className="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
-        <div className="text-center max-w-3xl mx-auto mb-16">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-sky-50 mb-4 mx-auto">
-            <Star className="w-6 h-6 text-amber-600 fill-amber-600" />
+        <div className="text-center max-w-2xl mx-auto mb-16">
+          <div className="bg-sky-100 text-sky-800 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
+            <Star className="w-6 h-6 text-amber-600 fill-amber-600 " />
           </div>
-          <h2 className="text-4xl font-black text-slate-800 mb-4 tracking-tight">Khách sạn cao cấp</h2>
-          <p className="text-slate-500 text-lg max-w-2xl mx-auto text-center leading-relaxed">Khám phá bộ sưu tập những khách sạn sang trọng bậc nhất, mang đến trải nghiệm nghỉ dưỡng đẳng cấp 5 sao.</p>
+
+          <h2 className="text-4xl font-black text-slate-800 mb-4 tracking-tight text-center">Khách sạn cao cấp</h2>
+          <p className="text-slate-500 text-lg max-w-2xl mx-auto text-center leading-relaxed -ml-50">Khám phá bộ sưu tập những khách sạn sang trọng bậc nhất, mang đến trải nghiệm nghỉ dưỡng đẳng cấp 5 sao.</p>
+
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -229,12 +229,14 @@ export function Home() {
       {vouchers.length > 0 && (
         <section className="py-20 bg-slate-50/50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center max-w-3xl mx-auto mb-16">
-              <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-sky-50 mb-4 mx-auto">
+            <div className="text-center max-w-2xl mx-auto mb-16">
+              <div className="bg-sky-100 text-sky-800 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
                 <Ticket className="w-6 h-6 text-sky-600" />
               </div>
+
               <h2 className="text-4xl font-black text-slate-800 mb-4 tracking-tight">Khuyến mãi & Ưu đãi đặc biệt</h2>
               <p className="text-slate-500 text-lg max-w-2xl mx-auto text-center leading-relaxed">Tận hưởng những ưu đãi độc quyền từ AquaStays để có kỳ nghỉ mơ ước với chi phí tối ưu nhất.</p>
+
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
